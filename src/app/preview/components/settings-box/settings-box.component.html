@@ -1,0 +1,12 @@
+<div style="display: flex; flex-direction: column;">
+    <div style="display: flex;">
+        <input placeholder="Placeholder" type="file" accept="image/*" (change)="selectFile($event)">
+        <!-- <mat-form-field appearance="outline">
+            <mat-label>Outline form field</mat-label>
+            <input placeholder="Placeholder" type="file" accept="image/*" (change)="selectFile($event)">
+            <mat-icon matSuffix>sentiment_very_satisfied</mat-icon>
+            <mat-hint>{{preview}}</mat-hint>
+        </mat-form-field> -->
+        <button mat-flat-button color="primary" (click)="upload$.next()" [disabled]="uploadingData">Upload</button>
+    </div>
+</div>

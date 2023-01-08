@@ -1,0 +1,10 @@
+.box {
+    display: flex;
+    margin: 2px;
+    padding: 8px;
+
+    &.bordered {
+        border: 1px solid $light-grey-d;
+        border-radius: 2px;
+    }
+}
