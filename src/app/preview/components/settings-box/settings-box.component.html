@@ -1,12 +1,22 @@
 <div style="display: flex; flex-direction: column;">
-    <div style="display: flex;">
-        <input placeholder="Placeholder" type="file" accept="image/*" (change)="selectFile($event)">
-        <!-- <mat-form-field appearance="outline">
-            <mat-label>Outline form field</mat-label>
-            <input placeholder="Placeholder" type="file" accept="image/*" (change)="selectFile($event)">
-            <mat-icon matSuffix>sentiment_very_satisfied</mat-icon>
-            <mat-hint>{{preview}}</mat-hint>
-        </mat-form-field> -->
-        <button mat-flat-button color="primary" (click)="upload$.next()" [disabled]="uploadingData">Upload</button>
+    <div [formGroup]="settings" style="display: flex; flex-direction: column;">
+        <mat-form-field appearance="outline">
+            <mat-label>Sprite sheet</mat-label>
+            <input #fileUpload matInput formControlName="file" placeholder="Click to upload an image" accept="image/*" (click)="fileInput.click()">
+            <mat-icon matSuffix (click)="fileInput.click()">attach_file</mat-icon>
+            <mat-hint *ngIf="currentFile">{{currentFile.width}}&#215;{{currentFile.height}}px</mat-hint>
+        </mat-form-field>
+        <input hidden (change)="selectFile$.next()" #fileInput type="file" id="file" accept="image/*">
+
+        <div style="display: flex; gap: 16px" formGroupName="viewport">
+            <mat-form-field appearance="outline">
+                <mat-label>Columns</mat-label>
+                <input matInput formControlName="cols" placeholder="" type="number">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Rows</mat-label>
+                <input matInput formControlName="rows" placeholder="Placeholder" type="number">
+            </mat-form-field>
+        </div>
     </div>
 </div>

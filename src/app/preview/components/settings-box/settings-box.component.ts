@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { debounceTime, exhaustMap, filter, finalize, fromEvent, map, Observable, Subject, Subscription, take, tap } from 'rxjs';
-import { FileService } from '../../services/file.service';
+import { FormControl, FormGroup } from '@angular/forms';
+import { debounceTime, defer, filter, fromEvent, iif, map, mergeMap, observable, Observable, of, startWith, Subject, Subscription, switchMap, take, tap } from 'rxjs';
+import { FileService } from '@preview/services/file.service';
+import { IImageFile, ISize, IViewport } from '@preview/interfaces/files';
 
 @Component({
   selector: 'settings-box',
@@ -8,88 +10,79 @@ import { FileService } from '../../services/file.service';
   styleUrls: ['./settings-box.component.scss']
 })
 export class SettingsBoxComponent implements OnInit {
-  selectedFiles: any
-  currentFile: any
-  upload$: Subject<void> = new Subject<void>()
+  currentFile?: IImageFile
 
-  uploadingData: boolean = false
+  settings: FormGroup = new FormGroup({
+    file: new FormControl(),
+    viewport: new FormGroup({
+      rows: new FormControl(),
+      cols: new FormControl()
+    })
+  })
 
-  private _subscriptions?: Subscription
+  selectFile$: Subject<void> = new Subject<void>()
+
+  private _subscriptions?: Subscription[]
 
   constructor(private _fileService: FileService) { }
 
   ngOnInit(): void {
-    this._subscriptions = this.upload$.pipe(
-      debounceTime(100),
-      filter(() => this.selectedFiles),
-      tap(() => {
-        this.uploadingData = true
-        const file: File | null = this.selectedFiles.item(0)
-      
-        if (file) {
-          this.currentFile = file;
-    
-          const reader = new FileReader();
-    
-          reader.onload = (e: any) => {
-            this._fileService.uploadFile(e.target.result)
-          };
-    
-          reader.readAsDataURL(this.currentFile)
-        }
-    
-        this.selectedFiles = undefined
-        this.uploadingData = false
-      })
-      //exhaustMap(() => )
-    ).subscribe()
+    this.settings.controls['viewport'].patchValue({
+      cols: 1,
+      rows: 1
+    })
+
+    this._subscriptions = [
+      this.selectFile$.pipe(
+        debounceTime(100),
+        switchMap(() => {
+          const inputNode: any = document.querySelector('#file')
+          let file = inputNode.files[0]
+          this.settings.controls['file'].setValue(file?.name ?? undefined)
+
+          const reader = new FileReader()
+          let observable$ = file ? fromEvent(reader, 'load').pipe(
+            switchMap((e: any) => this._getImgSize$(e.target.result).pipe(
+              tap((result: IImageFile) => {
+                this.currentFile = result
+                this._fileService.uploadFile(result)
+              })
+            ))
+          ) : of(1)
+
+          if(file) reader.readAsDataURL(file)
+
+          return observable$
+        }),
+      ).subscribe(),
+      this.settings.controls['viewport'].valueChanges.pipe(
+        debounceTime(100)
+      ).subscribe((values: IViewport) => this._fileService.viewportChange(values))
+    ]
   }
 
   ngOnDestroy(){
-    this._subscriptions?.unsubscribe()
+    this._subscriptions?.forEach(s => s.unsubscribe())
   }
 
-  selectFile(event: any): void {
-    this.selectedFiles = event.target.files
-  }
-
-  upload(): void {
-    if (this.selectedFiles) {
-      const file: File | null = this.selectedFiles.item(0)
-  
-      if (file) {
-        this.currentFile = file;
-  
-        const reader = new FileReader();
-  
-        reader.onload = (e: any) => {
-          //console.log(e.target.result)
-          this._fileService.uploadFile(e.target.result)
-        };
-  
-        reader.readAsDataURL(this.currentFile)
-      }
-  
-      this.selectedFiles = undefined
-    }
-  }
-  
-
-  /*getImgSize(imageSrc: string): Observable<ISize> {
+  /** Get the size of the image
+   * @param imageSrc The image whose size is to be retrieved, encoded with base64
+   * @returns An {@link IImageFile} object containing the original image (base64), and its width and height
+   */
+  private _getImgSize$(imageSrc: string): Observable<IImageFile> {
     var image = new Image();
     let loadedImg$ = fromEvent(image, "load").pipe(
       take(1),
-      map((event): ISize => {
+      map((event: any): IImageFile => {
         return {
-          width: event.target.width,
-          height: event.target.height
+          base64: imageSrc,
+          width: event.target?.width ?? NaN,
+          height: event.target?.height ?? NaN
         };
       })
     );
     image.src = imageSrc;
     return loadedImg$;
-  }*/
+  }
 
 }
-
-interface ISize { width: number; height: number; }
