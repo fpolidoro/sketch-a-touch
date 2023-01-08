@@ -8,14 +8,16 @@
         </mat-form-field>
         <input hidden (change)="selectFile$.next()" #fileInput type="file" id="file" accept="image/*">
 
-        <div style="display: flex; gap: 16px" formGroupName="viewport">
+        <div style="display: flex; gap: 16px; padding-top: 16px;" formGroupName="viewport">
             <mat-form-field appearance="outline">
                 <mat-label>Columns</mat-label>
                 <input matInput formControlName="cols" placeholder="" type="number">
+                <mat-hint *ngIf="currentFile && settings.get('viewport.cols')">Width: {{currentFile.width/(settings.get('viewport.cols')!.value ? +settings.get('viewport.cols')!.value : 1)}}px</mat-hint>
             </mat-form-field>
             <mat-form-field appearance="outline">
                 <mat-label>Rows</mat-label>
                 <input matInput formControlName="rows" placeholder="Placeholder" type="number">
+                <mat-hint *ngIf="currentFile && settings.get('viewport.rows')">Height: {{currentFile.height/(settings.get('viewport.rows')!.value ? +settings.get('viewport.rows')!.value : 1)}}px</mat-hint>
             </mat-form-field>
         </div>
     </div>

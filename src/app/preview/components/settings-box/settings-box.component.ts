@@ -45,12 +45,16 @@ export class SettingsBoxComponent implements OnInit {
             switchMap((e: any) => this._getImgSize$(e.target.result).pipe(
               tap((result: IImageFile) => {
                 this.currentFile = result
-                this._fileService.uploadFile(result)
+                this._fileService.uploadFile(result)  //notify live-box
+                this.settings.controls['viewport'].patchValue({ //reset columns and rows
+                  cols: 1,
+                  rows: 1
+                })
               })
             ))
           ) : of(1)
 
-          if(file) reader.readAsDataURL(file)
+          if(file) reader.readAsDataURL(file) //trigger the fromEvent above
 
           return observable$
         }),
