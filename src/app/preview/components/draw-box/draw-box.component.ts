@@ -10,10 +10,16 @@ import { fromEvent, tap, switchMap, takeUntil, finalize, map, Subscription, with
   styleUrls: ['./draw-box.component.scss']
 })
 export class DrawBoxComponent implements OnInit, OnDestroy {
-  @ViewChild('canvas', {static: true}) canvas!: ElementRef<HTMLCanvasElement> 
-  ctx: CanvasRenderingContext2D|null = null
+  @ViewChild('canvas', {static: true}) canvas!: ElementRef<HTMLCanvasElement>
   viewport?: ISize
   area?: IRect
+  radius: number = 0
+  startX: number = 0
+  startY: number = 0
+  endX: number = 0
+  endY: number = 0
+
+  type: 'square'|'circle' = 'square'
 
   private _subscription?: Subscription
 
@@ -33,52 +39,41 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.ctx = this.canvas.nativeElement.getContext('2d')
     const mouseDownStream = fromEvent(this.canvas.nativeElement, 'mousedown')
     const mouseMoveStream = fromEvent(this.canvas.nativeElement, 'mousemove')
     const mouseUpStream = fromEvent(window, 'mouseup')
-    let startX: number
-    let startY: number
-    let endX: number
-    let endY: number
-    let path: Path2D// = new Path2D()
     mouseDownStream.pipe(
       map((event: Event) => event as MouseEvent),
       tap((event: MouseEvent) => {
-        this.ctx?.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
-        this.ctx!.beginPath();
-        this.ctx!.strokeStyle = 'red';
-        this.ctx!.lineWidth = 5;
-        this.ctx!.moveTo(event.offsetX, event.offsetY);
-        startX = event.offsetX
-        startY = event.offsetY
-        endX = 0
-        endY = 0
-        path = new Path2D()
-        path.arc(startX, startY, 1, 0, 2*Math.PI)
-        this.ctx!.stroke(path)
+        this.startX = event.offsetX
+        this.startY = event.offsetY
+        this.endX = 0
+        this.endY = 0
       }),
       switchMap(() => mouseMoveStream.pipe(
         map((event: Event) => event as MouseEvent),
         tap((event: MouseEvent) => {
-          this.ctx?.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
-          endX = event.offsetX
-          endY = event.offsetY
-          path = new Path2D()
-          this.ctx?.beginPath()
-          let xx = Math.pow(endX-startX, 2)
-          let yy = Math.pow(endY-startY, 2)
-          let distance = Math.sqrt(xx + yy)
-          path.arc(startX, startY, distance, 0, 2*Math.PI)
-          this.ctx!.stroke(path)
+          switch(this.type){
+            case 'circle':
+              this.endX = event.offsetX - this.startX
+              this.endY = event.offsetY - this.startY
+              let xx = Math.pow(this.endX, 2)
+              let yy = Math.pow(this.endY, 2)
+              this.radius = Math.sqrt(xx + yy)
+              break
+            case 'square':
+              this.endX = event.offsetX
+              this.endY = event.offsetY
+              break
+          }
         }),
         takeUntil(mouseUpStream),
         finalize(() => {
           this.area = {
-            x: startX,
-            y: startY,
-            w: endX,
-            h: endY
+            x: this.startX,
+            y: this.startY,
+            w: this.endX,
+            h: this.endY
           }
           console.log(this.area)
         })
