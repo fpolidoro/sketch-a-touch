@@ -41,33 +41,39 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
     let startY: number
     let endX: number
     let endY: number
+    let path: Path2D// = new Path2D()
     mouseDownStream.pipe(
       map((event: Event) => event as MouseEvent),
       tap((event: MouseEvent) => {
-        //this.ctx!.beginPath();
+        this.ctx?.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
+        this.ctx!.beginPath();
         this.ctx!.strokeStyle = 'red';
         this.ctx!.lineWidth = 5;
-        //this.ctx!.lineJoin = 'round';
-        //this.ctx!.moveTo(event.offsetX, event.offsetY);
+        this.ctx!.moveTo(event.offsetX, event.offsetY);
         startX = event.offsetX
         startY = event.offsetY
         endX = 0
         endY = 0
-        this.ctx!.strokeRect(startX, startY, endX, endY)
+        path = new Path2D()
+        path.arc(startX, startY, 1, 0, 2*Math.PI)
+        this.ctx!.stroke(path)
       }),
       switchMap(() => mouseMoveStream.pipe(
         map((event: Event) => event as MouseEvent),
         tap((event: MouseEvent) => {
           this.ctx?.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
-          endX = event.offsetX-startX
-          endY = event.offsetY-startY
-          //this.ctx!.lineTo(event.offsetX, event.offsetY);
-          this.ctx?.strokeRect(startX, startY, endX, endY)
-          this.ctx!.stroke();
+          endX = event.offsetX
+          endY = event.offsetY
+          path = new Path2D()
+          this.ctx?.beginPath()
+          let xx = Math.pow(endX-startX, 2)
+          let yy = Math.pow(endY-startY, 2)
+          let distance = Math.sqrt(xx + yy)
+          path.arc(startX, startY, distance, 0, 2*Math.PI)
+          this.ctx!.stroke(path)
         }),
         takeUntil(mouseUpStream),
         finalize(() => {
-          //this.ctx!.closePath();
           this.area = {
             x: startX,
             y: startY,
@@ -77,7 +83,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
           console.log(this.area)
         })
       ))
-    ).subscribe(console.log);
+    ).subscribe();
   }
 
   ngOnDestroy(): void {
