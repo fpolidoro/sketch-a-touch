@@ -1,3 +1,4 @@
-<div style.width="{{viewportSize.width}}px" style.height="{{viewportSize.height}}px" style="overflow: hidden;">
+<div style.width="{{viewportSize.width}}px" style.height="{{viewportSize.height}}px" style="position: relative; overflow: hidden;">
     <img [src]="image$ | async">
+    <draw-box class="canvas-box"></draw-box>
 </div>
