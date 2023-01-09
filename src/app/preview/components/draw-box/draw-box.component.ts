@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ISize } from '@preview/interfaces/files';
+import { IRect } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 import { fromEvent, tap, switchMap, takeUntil, finalize, map, Subscription, withLatestFrom, filter } from 'rxjs';
 
@@ -12,6 +13,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
   @ViewChild('canvas', {static: true}) canvas!: ElementRef<HTMLCanvasElement> 
   ctx: CanvasRenderingContext2D|null = null
   viewport?: ISize
+  area?: IRect
 
   private _subscription?: Subscription
 
@@ -35,24 +37,44 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
     const mouseDownStream = fromEvent(this.canvas.nativeElement, 'mousedown')
     const mouseMoveStream = fromEvent(this.canvas.nativeElement, 'mousemove')
     const mouseUpStream = fromEvent(window, 'mouseup')
+    let startX: number
+    let startY: number
+    let endX: number
+    let endY: number
     mouseDownStream.pipe(
       map((event: Event) => event as MouseEvent),
       tap((event: MouseEvent) => {
-        this.ctx!.beginPath();
+        //this.ctx!.beginPath();
         this.ctx!.strokeStyle = 'red';
         this.ctx!.lineWidth = 5;
-        this.ctx!.lineJoin = 'round';
-        this.ctx!.moveTo(event.offsetX, event.offsetY);
+        //this.ctx!.lineJoin = 'round';
+        //this.ctx!.moveTo(event.offsetX, event.offsetY);
+        startX = event.offsetX
+        startY = event.offsetY
+        endX = 0
+        endY = 0
+        this.ctx!.strokeRect(startX, startY, endX, endY)
       }),
       switchMap(() => mouseMoveStream.pipe(
         map((event: Event) => event as MouseEvent),
         tap((event: MouseEvent) => {
-          this.ctx!.lineTo(event.offsetX, event.offsetY);
+          this.ctx?.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height)
+          endX = event.offsetX-startX
+          endY = event.offsetY-startY
+          //this.ctx!.lineTo(event.offsetX, event.offsetY);
+          this.ctx?.strokeRect(startX, startY, endX, endY)
           this.ctx!.stroke();
         }),
         takeUntil(mouseUpStream),
         finalize(() => {
-          this.ctx!.closePath();
+          //this.ctx!.closePath();
+          this.area = {
+            x: startX,
+            y: startY,
+            w: endX,
+            h: endY
+          }
+          console.log(this.area)
         })
       ))
     ).subscribe(console.log);
