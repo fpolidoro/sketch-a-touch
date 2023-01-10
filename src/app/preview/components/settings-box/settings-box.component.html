@@ -1,4 +1,4 @@
-<div style="display: flex; flex-direction: column;">
+<div style="display: flex; flex-direction: column; width: 100%;">
     <div [formGroup]="settings" style="display: flex; flex-direction: column;">
         <mat-form-field appearance="outline">
             <mat-label>Sprite sheet</mat-label>
@@ -20,5 +20,22 @@
                 <mat-hint *ngIf="currentFile && settings.get('viewport.rows')">Row height: {{(currentFile.height/(settings.get('viewport.rows')!.value ? +settings.get('viewport.rows')!.value : 1)) | number: '1.0-1'}}px</mat-hint>
             </mat-form-field>
         </div>
+        <mat-toolbar style="background: rgba(0,0,0,0); border-top: 1px solid #ddd;">
+            <span>Interactive areas</span>
+            <span style="flex: 1 1 auto;"></span>
+            <button mat-icon-button>
+              <mat-icon>delete</mat-icon>
+            </button>
+        </mat-toolbar>
+          
+        <mat-selection-list [multiple]="false">
+            <mat-list-option>
+              <input-item style="display: flex;"></input-item>
+            </mat-list-option>
+            <button mat-button class="mat-list-option mat-list-item item-button" (click)="addInteractiveArea$.next()">
+                <mat-icon>add</mat-icon>
+                Add interactive area
+            </button>
+        </mat-selection-list>
     </div>
 </div>

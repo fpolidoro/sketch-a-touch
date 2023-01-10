@@ -21,6 +21,7 @@ export class SettingsBoxComponent implements OnInit {
   })
 
   selectFile$: Subject<void> = new Subject<void>()
+  addInteractiveArea$: Subject<void> = new Subject<void>()
 
   private _subscriptions?: Subscription[]
 
@@ -61,7 +62,11 @@ export class SettingsBoxComponent implements OnInit {
       ).subscribe(),
       this.settings.controls['viewport'].valueChanges.pipe(
         debounceTime(100)
-      ).subscribe((values: IViewport) => this._fileService.viewportChange(values))
+      ).subscribe((values: IViewport) => this._fileService.viewportChange(values)),
+      this.addInteractiveArea$.pipe(
+        debounceTime(100),
+        tap(() => console.log(`add area clicked`))
+      ).subscribe()
     ]
   }
 

@@ -1,0 +1,15 @@
+input-item {
+    gap: 16px;
+
+    & .number-box .mat-form-field-infix {
+        max-width: 60px;
+    }
+
+    & .select-icon-box .mat-form-field-infix {
+        max-width: 100px;
+    }
+
+    & .select-box .mat-form-field-infix {
+        max-width: 120px;
+    }
+}

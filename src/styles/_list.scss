@@ -1,0 +1,13 @@
+settings-box {
+    & .mat-list-base .mat-list-option {
+        height: 90px;
+    }
+}
+
+.item-button {
+    &.mat-list-item.mat-list-option .mat-list-text {
+        flex-direction: row;
+        justify-content: center;
+        line-height: 24px;
+    }
+}

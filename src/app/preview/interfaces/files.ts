@@ -11,3 +11,8 @@ export interface IViewport {
   rows: number,
   cols: number
 }
+
+export interface IItem {
+  icon: string,
+  label: string
+}
