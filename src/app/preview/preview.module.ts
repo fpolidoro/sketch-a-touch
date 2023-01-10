@@ -6,6 +6,7 @@ import { SettingsBoxComponent } from './components/settings-box/settings-box.com
 import { MaterialModule } from '@shared/material/material.module';
 import { DrawBoxComponent } from './components/draw-box/draw-box.component';
 import { InputItemComponent } from './components/input-item/input-item.component';
+import { DirectivesModule } from '@shared/directives/directives.module';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { InputItemComponent } from './components/input-item/input-item.component
   imports: [
     CommonModule,
     MaterialModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    DirectivesModule
   ],
   exports: [
     LiveBoxComponent,

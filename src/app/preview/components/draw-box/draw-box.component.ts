@@ -19,7 +19,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
   endX: number = 0
   endY: number = 0
 
-  type: 'square'|'circle' = 'square'
+  type: 'rect'|'circle' = 'rect'
 
   private _subscription?: Subscription
 
@@ -61,7 +61,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
               let yy = Math.pow(this.endY, 2)
               this.radius = Math.sqrt(xx + yy)
               break
-            case 'square':
+            case 'rect':
               this.endX = event.offsetX
               this.endY = event.offsetY
               break
@@ -70,6 +70,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
         takeUntil(mouseUpStream),
         finalize(() => {
           this.area = {
+            type: 'rect',
             x: this.startX,
             y: this.startY,
             w: this.endX,
@@ -82,6 +83,6 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-      this._subscription?.unsubscribe()
+    this._subscription?.unsubscribe()
   }
 }

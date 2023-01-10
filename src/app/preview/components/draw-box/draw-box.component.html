@@ -2,7 +2,7 @@
     attr.height="{{(viewport !== undefined ? viewport.height : 0)}}">
     <ng-container [ngSwitch]="type">
         <circle *ngSwitchCase="'circle'" attr.cx="{{startX}}" attr.cy="{{startY}}" attr.r="{{radius}}" stroke="black" stroke-width="3" fill="red" opacity="0.5" />
-        <rect *ngSwitchCase="'square'"
+        <rect *ngSwitchCase="'rect'"
             attr.x="{{endX-startX < 0 ? endX : startX}}" attr.y="{{endY-startY < 0 ? endY : startY}}"
             attr.width="{{endX-startX < 0 ? startX-endX : endX-startX}}" attr.height="{{endY - startY < 0 ? startY - endY : endY - startY}}" style="fill:blue;stroke:black;stroke-width:3;opacity:0.5" />
     </ng-container>
