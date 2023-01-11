@@ -1,6 +1,6 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ISize } from '@preview/interfaces/files';
-import { IRect } from '@preview/interfaces/shapes';
+import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 import { fromEvent, tap, switchMap, takeUntil, finalize, map, Subscription, withLatestFrom, filter, take } from 'rxjs';
 
@@ -11,10 +11,10 @@ import { fromEvent, tap, switchMap, takeUntil, finalize, map, Subscription, with
 })
 export class DrawBoxComponent implements OnInit, OnDestroy {
   @ViewChild('canvas', {static: true}) canvas!: ElementRef<HTMLCanvasElement>
-  type?: 'rect'|'circle'
+  type?: 'rectangle'|'circle'
 
   viewport?: ISize
-  area?: IRect
+  area?: IArea
   radius: number = 0
   startX: number = 0
   startY: number = 0
@@ -45,8 +45,8 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
     
     this._subscriptions.push(this._fileService.interactiveAreaRequested$.pipe(
       tap((type) => console.log(`Received a request for a ${type}`)),
-      tap((type: 'circle'|'rect') => this.type = type),
-      switchMap((type: 'circle'|'rect') => mouseDownStream.pipe(
+      tap((type: 'circle'|'rectangle') => this.type = type),
+      switchMap((type: 'circle'|'rectangle') => mouseDownStream.pipe(
         map((event: Event) => event as MouseEvent),
         tap((event: MouseEvent) => {
           console.log(`mouse down`)
@@ -66,7 +66,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
                 let yy = Math.pow(this.endY, 2)
                 this.radius = Math.sqrt(xx + yy)
                 break
-              case 'rect':
+              case 'rectangle':
                 this.endX = event.offsetX
                 this.endY = event.offsetY
                 break
@@ -80,11 +80,24 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
             tap((action) => {
               console.log(`received action ${action}`)
               if(action === 'ok'){
-                this._fileService.announceInteractiveArea({
+                let area = {
                   type: type,
                   x: this.startX,
                   y: this.startY,
-                })
+                }
+                switch(type){
+                  case 'circle':
+                    area = Object.assign(area, {
+                      r: this.radius
+                    })
+                    break
+                  case 'rectangle':
+                    area = Object.assign(area, {
+                      w: this.endX,
+                      h: this.endY
+                    })
+                }
+                this._fileService.announceInteractiveArea(area)
               }else{
                 if(action === 'cancel') this.type = undefined
                 this.startX = 0
@@ -97,7 +110,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
           ))
           /*finalize(() => {
             this.area = {
-              type: 'rect',
+              type: 'rectangle',
               x: this.startX,
               y: this.startY,
               w: this.endX,

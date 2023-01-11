@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { IImageFile, ISize } from '@preview/interfaces/files';
+import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
@@ -19,6 +20,8 @@ export class LiveBoxComponent implements OnInit {
     map((img: IImageFile) => img.base64)
   )
 
+  areas: IArea[] = []
+
   private _subscription?: Subscription
 
   constructor(private _fileService: FileService) { }
@@ -34,6 +37,10 @@ export class LiveBoxComponent implements OnInit {
       }
       console.log(this.viewportSize)
     })
+    this._subscription.add(this._fileService.interactiveAreaAnnounced$.subscribe((area: IArea) => {
+      this.areas.push(area)
+      console.log(area)
+    }))
   }
 
   ngOnDestroy(): void {

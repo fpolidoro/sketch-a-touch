@@ -30,9 +30,8 @@
           
         <mat-selection-list [multiple]="false">
             <mat-list-option *ngFor="let area of areas">
-              <input-item flex></input-item>
+              <input-item flex [area]="area"></input-item>
             </mat-list-option>
-            <div class="mat-list-option mat-list-item"></div>
             <mat-list-option #newInteractiveArea class="mat-list-option mat-list-item item-button" [disableRipple]="newInteractiveArea.selected" (click)="addInteractiveArea$.next()" [selected]="showShapes">
                 <ng-container *ngIf="!drawing">
                     <ng-container *ngIf="!showShapes">
@@ -43,7 +42,7 @@
                         <span>Select the shape for the interactive area</span>
                         <div flex gap="16">
                             <button mat-stroked-button (click)="selectAreaType$.next([$event, 'circle'])">Circle</button>
-                            <button mat-stroked-button (click)="selectAreaType$.next([$event, 'rect'])">Rect</button>
+                            <button mat-stroked-button (click)="selectAreaType$.next([$event, 'rectangle'])">Rect</button>
                         </div>
                     </div>
                 </ng-container>

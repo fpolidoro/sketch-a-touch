@@ -1,5 +1,5 @@
 export interface IArea {
-    type: 'circle'|'rect',
+    type: 'circle'|'rectangle',
     x: number,
     y: number,
 }
@@ -15,8 +15,8 @@ export interface ICircle extends IArea {
 
 export interface IInteractiveArea {
     area: IArea,
-    gesture: 'string',
-    start: number,
-    end: number,
-    direction: 'row'|'col'
+    gesture?: 'string',
+    start?: number,
+    end?: number,
+    direction?: 'row'|'col'
 }

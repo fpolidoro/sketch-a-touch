@@ -3,7 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { debounceTime, defer, exhaustMap, filter, finalize, fromEvent, iif, map, mergeMap, Observable, of, Subject, Subscription, switchMap, take, tap } from 'rxjs';
 import { FileService } from '@preview/services/file.service';
 import { IImageFile, IViewport } from '@preview/interfaces/files';
-import { IInteractiveArea } from '@preview/interfaces/shapes';
+import { IArea } from '@preview/interfaces/shapes';
 
 @Component({
   selector: 'settings-box',
@@ -21,7 +21,7 @@ export class SettingsBoxComponent implements OnInit {
     })
   })
 
-  areas: IInteractiveArea[] = []
+  areas: IArea[] = []
   tmpArea?: FormGroup
 
   drawing: boolean = false
@@ -29,7 +29,7 @@ export class SettingsBoxComponent implements OnInit {
 
   selectFile$: Subject<void> = new Subject<void>()
   addInteractiveArea$: Subject<void> = new Subject<void>()
-  selectAreaType$: Subject<[Event, 'circle'|'rect']> = new Subject<[Event, 'circle'|'rect']>()
+  selectAreaType$: Subject<[Event, 'circle'|'rectangle']> = new Subject<[Event, 'circle'|'rectangle']>()
   doneDrawing$: Subject<[Event, 'ok'|'reset'|'cancel']> = new Subject<[Event, 'ok'|'reset'|'cancel']>()
 
   private _subscriptions?: Subscription[]
@@ -100,6 +100,9 @@ export class SettingsBoxComponent implements OnInit {
           )),
         )),
         tap((shouldShow: boolean) => this.showShapes = shouldShow)
+      ).subscribe(),
+      this._fileService.interactiveAreaAnnounced$.pipe(
+        tap((area: IArea) => this.areas.push(area))
       ).subscribe()
     ]
   }

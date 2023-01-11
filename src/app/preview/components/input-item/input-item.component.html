@@ -1,4 +1,8 @@
-<mat-form-field appearance="outline" class="select-icon-box">
+<div flex="column">
+    <mat-icon>{{area?.type}}</mat-icon>
+    <span style="font-size: 8px;">{{area?.type}}</span>
+</div>
+<!-- <mat-form-field appearance="outline" class="select-icon-box">
     <mat-label>Area</mat-label>
     <mat-select #selectArea>
         <mat-select-trigger>
@@ -9,7 +13,7 @@
         </mat-option>
     </mat-select>
     <mat-hint>{{selectArea.value?.label}}</mat-hint>
-</mat-form-field>
+</mat-form-field> -->
 <mat-form-field appearance="outline" class="select-box">
     <mat-label>Gesture</mat-label>
     <mat-select>

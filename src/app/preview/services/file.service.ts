@@ -13,7 +13,7 @@ export class FileService {
   private _fileUploadSource: ReplaySubject<IImageFile> = new ReplaySubject<IImageFile>(1)
   private _viewportSource: ReplaySubject<IViewport> = new ReplaySubject<IViewport>(1)
   private _interactiveAreaSource: ReplaySubject<IArea> = new ReplaySubject<IArea>(1)
-  private _interactiveAreaRequestSource: ReplaySubject<'circle'|'rect'> = new ReplaySubject<'circle'|'rect'>(1)
+  private _interactiveAreaRequestSource: ReplaySubject<'circle'|'rectangle'> = new ReplaySubject<'circle'|'rectangle'>(1)
   private _interactiveAreaActionSource: ReplaySubject<'ok'|'reset'|'cancel'|null> = new ReplaySubject<'ok'|'reset'|'cancel'|null>(1)
 
   /** Notifies the selection of a file
@@ -51,7 +51,7 @@ export class FileService {
   /** Requests the creation of an interactive area
    * @param request The shape of the area that must be drawn on the sprite sheet
   */
-  requestInteractiveArea(request: 'circle'|'rect'): void {
+  requestInteractiveArea(request: 'circle'|'rectangle'): void {
     this._interactiveAreaRequestSource.next(request)
   }
   /** Listens to the requests issued by {@link requestInteractiveArea} */

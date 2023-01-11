@@ -7,6 +7,7 @@ import { MaterialModule } from '@shared/material/material.module';
 import { DrawBoxComponent } from './components/draw-box/draw-box.component';
 import { InputItemComponent } from './components/input-item/input-item.component';
 import { DirectivesModule } from '@shared/directives/directives.module';
+import { CastShapePipe } from './pipes/cast-shape.pipe';
 
 @NgModule({
   declarations: [
@@ -14,6 +15,7 @@ import { DirectivesModule } from '@shared/directives/directives.module';
     SettingsBoxComponent,
     DrawBoxComponent,
     InputItemComponent,
+    CastShapePipe,
   ],
   imports: [
     CommonModule,
@@ -24,6 +26,7 @@ import { DirectivesModule } from '@shared/directives/directives.module';
   exports: [
     LiveBoxComponent,
     SettingsBoxComponent,
+    CastShapePipe
   ]
 })
 export class PreviewModule { }

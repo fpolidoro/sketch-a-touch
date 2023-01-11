@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { IItem } from '@preview/interfaces/files';
+import { IArea } from '@preview/interfaces/shapes';
 
 @Component({
   selector: 'input-item',
@@ -7,6 +8,7 @@ import { IItem } from '@preview/interfaces/files';
   styleUrls: ['./input-item.component.scss']
 })
 export class InputItemComponent implements OnInit {
+  @Input() area?: IArea
 
   readonly areaType: IItem[] = [
     { icon: 'circle', label: 'Circle' },
@@ -20,6 +22,11 @@ export class InputItemComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    if(this.area === undefined){
+      throw new Error(`Cannot initialize input-item component because @Input area is undefined`)
+    }else{
+      
+    }
   }
 
 }
