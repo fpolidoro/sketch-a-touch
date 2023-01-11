@@ -3,7 +3,7 @@ import { IImageFile, ISize } from '@preview/interfaces/files';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
-import { filter, map, Observable, startWith, Subscription, tap, withLatestFrom } from 'rxjs';
+import { filter, map, Observable, Subscription, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'live-box',

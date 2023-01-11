@@ -79,26 +79,24 @@ export class SettingsBoxComponent implements OnInit {
           tap(([event, what]) => {
             event.stopPropagation() //prevent the event to bubble up to parent, or it will trigger again the addInteractiveArea$
             console.log(`requested a ${what}`)
+            this._fileService.requestInteractiveArea(what)  //send the selected shape to the draw-box component
             this.drawing = true
           }),
-          exhaustMap(() => this.doneDrawing$.pipe(  //click on the done buttons
+          exhaustMap(([event, what]) => this.doneDrawing$.pipe(  //click on the done buttons
             tap(([event, outcome]) => {
               event.stopPropagation()
               console.log(outcome)
             }),
-            mergeMap(([event, outcome]) => iif( //reset the view based on the clicked button
+            mergeMap(([event, outcome]) => {
+              this._fileService.actionForInteractiveArea(outcome)
+              return iif( //reset the view based on the clicked button
               () => outcome === 'reset',
-              defer(() => of(true).pipe(
-                tap(() => console.log(`area must be reset`))
-              )),
-              defer(() => of(false).pipe(
-                tap(() => {
-                  this.drawing = false
-                }),
-                /*filter(() => outcome === 'ok'),
-                tap(() => console.log(`Area was ok`))*/
+              defer(() => of(true).pipe(tap(() => console.log(`area must be reset`)))),
+              defer(() => of(false).pipe( //action was either 'ok' or 'cancel', so box must return to the 'add new area' state
+                tap(() => this.drawing = false)
               ))
-            ))
+            )}),
+            tap(() => this._fileService.actionForInteractiveArea(null)) //the action has been registered by the listening components, so we can reset it
           )),
         )),
         tap((shouldShow: boolean) => this.showShapes = shouldShow)

@@ -14,6 +14,7 @@ export class FileService {
   private _viewportSource: ReplaySubject<IViewport> = new ReplaySubject<IViewport>(1)
   private _interactiveAreaSource: ReplaySubject<IArea> = new ReplaySubject<IArea>(1)
   private _interactiveAreaRequestSource: ReplaySubject<'circle'|'rect'> = new ReplaySubject<'circle'|'rect'>(1)
+  private _interactiveAreaActionSource: ReplaySubject<'ok'|'reset'|'cancel'|null> = new ReplaySubject<'ok'|'reset'|'cancel'|null>(1)
 
   /** Notifies the selection of a file
    * @param base64file The image to announce, encoded with base64
@@ -37,15 +38,35 @@ export class FileService {
   /** Observes the size changes of the viewport */
   viewportChanged$ = this._viewportSource.asObservable()
 
+  /** Advertises the successful creation of an interactive area
+   * @param area The area to advertise
+   */
   announceInteractiveArea(area: IArea): void {
     this._interactiveAreaSource.next(area)
   }
 
+  /** Observes the changes of the interactive area drawn on the sprite sheet */
   interactiveAreaAnnounced$ = this._interactiveAreaSource.asObservable()
 
+  /** Requests the creation of an interactive area
+   * @param request The shape of the area that must be drawn on the sprite sheet
+  */
   requestInteractiveArea(request: 'circle'|'rect'): void {
     this._interactiveAreaRequestSource.next(request)
   }
-
+  /** Listens to the requests issued by {@link requestInteractiveArea} */
   interactiveAreaRequested$ = this._interactiveAreaRequestSource.asObservable()
+
+  /** Tells whether the interactive area should be saved, discarded or reset
+   * @param action The action that defines what will happen to the interactive area:
+   * - `ok`, if the area is valid and it should be accepted
+   * - `reset`, if the area is to be discarded so that the user can draw another one
+   * - `cancel`, if the user decided to stop drawing the area on the sprite sheet
+   */
+  actionForInteractiveArea(action: 'ok'|'cancel'|'reset'|null): void {
+    this._interactiveAreaActionSource.next(action)
+  }
+  /** Observes the action that should be taken after the interactive area has been
+   * drawn on the sprite sheet */
+  interactiveAreaActionChanged$ = this._interactiveAreaActionSource.asObservable()
 }
