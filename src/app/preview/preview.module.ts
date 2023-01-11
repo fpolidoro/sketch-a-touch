@@ -1,0 +1,33 @@
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { LiveBoxComponent } from './components/live-box/live-box.component';
+import { SettingsBoxComponent } from './components/settings-box/settings-box.component';
+import { MaterialModule } from '@shared/material/material.module';
+import { DrawBoxComponent } from './components/draw-box/draw-box.component';
+import { InputItemComponent } from './components/input-item/input-item.component';
+import { DirectivesModule } from '@shared/directives/directives.module';
+import { CastShapePipe } from './pipes/cast-shape.pipe';
+
+@NgModule({
+  declarations: [
+    LiveBoxComponent,
+    SettingsBoxComponent,
+    DrawBoxComponent,
+    InputItemComponent,
+    CastShapePipe,
+  ],
+  imports: [
+    CommonModule,
+    MaterialModule,
+    ReactiveFormsModule,
+    DirectivesModule
+  ],
+  exports: [
+    LiveBoxComponent,
+    SettingsBoxComponent,
+    CastShapePipe
+  ]
+})
+export class PreviewModule { }
+

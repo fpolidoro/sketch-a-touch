@@ -1,0 +1,62 @@
+<div flex="column" style="width: 100%;">
+    <div [formGroup]="settings" flex="column">
+        <mat-form-field appearance="outline">
+            <mat-label>Sprite sheet</mat-label>
+            <input #fileUpload matInput formControlName="file" placeholder="Click to upload an image" accept="image/*" (click)="fileInput.click()">
+            <mat-icon matSuffix (click)="fileInput.click()">attach_file</mat-icon>
+            <mat-hint *ngIf="currentFile">{{currentFile.width}}&#215;{{currentFile.height}}px</mat-hint>
+        </mat-form-field>
+        <input hidden (change)="selectFile$.next()" #fileInput type="file" id="file" accept="image/*">
+
+        <div flex gap="16" style="padding-top: 16px;" formGroupName="viewport">
+            <mat-form-field appearance="outline">
+                <mat-label>Columns</mat-label>
+                <input matInput formControlName="cols" placeholder="" type="number">
+                <mat-hint *ngIf="currentFile && settings.get('viewport.cols')">Column width: {{(currentFile.width/(settings.get('viewport.cols')!.value ? +settings.get('viewport.cols')!.value : 1)) | number: '1.0-1'}}px</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Rows</mat-label>
+                <input matInput formControlName="rows" placeholder="Placeholder" type="number">
+                <mat-hint *ngIf="currentFile && settings.get('viewport.rows')">Row height: {{(currentFile.height/(settings.get('viewport.rows')!.value ? +settings.get('viewport.rows')!.value : 1)) | number: '1.0-1'}}px</mat-hint>
+            </mat-form-field>
+        </div>
+        <mat-toolbar style="background: rgba(0,0,0,0); border-top: 1px solid #ddd;">
+            <span>Interactive areas</span>
+            <span style="flex: 1 1 auto;"></span>
+            <button mat-icon-button>
+              <mat-icon>delete</mat-icon>
+            </button>
+        </mat-toolbar>
+          
+        <mat-selection-list [multiple]="false">
+            <mat-list-option *ngFor="let area of areas; let i = index" [selected]="!showShapes && i === selectedAreaIndex" (click)="selectArea(i)">
+              <input-item flex [area]="area"></input-item>
+            </mat-list-option>
+            <mat-list-option #newInteractiveArea class="mat-list-option mat-list-item item-button" [disableRipple]="newInteractiveArea.selected" (click)="addInteractiveArea$.next()" [selected]="showShapes">
+                <ng-container *ngIf="!drawing">
+                    <ng-container *ngIf="!showShapes">
+                        <mat-icon>add</mat-icon>
+                        Add interactive area
+                    </ng-container>
+                    <div *ngIf="showShapes">
+                        <span>Select the shape for the interactive area</span>
+                        <div flex gap="16">
+                            <button mat-stroked-button (click)="selectAreaType$.next([$event, 'circle'])">Circle</button>
+                            <button mat-stroked-button (click)="selectAreaType$.next([$event, 'rectangle'])">Rect</button>
+                        </div>
+                    </div>
+                </ng-container>
+                <ng-container *ngIf="drawing">
+                    <div>
+                        <span>Draw the interactive area over the image</span>
+                        <div flex gap="16">
+                            <button mat-stroked-button (click)="doneDrawing$.next([$event, 'cancel'])">Cancel</button>
+                            <button mat-stroked-button (click)="doneDrawing$.next([$event, 'reset'])">Reset</button>
+                            <button mat-stroked-button (click)="doneDrawing$.next([$event, 'ok'])">Confirm</button>
+                        </div>
+                    </div>
+                </ng-container>
+            </mat-list-option>
+        </mat-selection-list>
+    </div>
+</div>

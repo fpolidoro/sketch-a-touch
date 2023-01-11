@@ -1,0 +1,19 @@
+.box {
+    display: flex;
+    position: relative;
+    margin: 2px;
+    padding: 8px;
+
+    &.bordered {
+        border: 1px solid $light-grey-d;
+        border-radius: 2px;
+    }
+}
+
+.canvas-box {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}

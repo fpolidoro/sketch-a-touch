@@ -1,0 +1,9 @@
+<svg #canvas attr.width="{{(viewport !== undefined ? viewport.width : 0)}}"
+    attr.height="{{(viewport !== undefined ? viewport.height : 0)}}">
+    <ng-container [ngSwitch]="type">
+        <circle *ngSwitchCase="'circle'" attr.cx="{{startX}}" attr.cy="{{startY}}" attr.r="{{radius}}" fill="red" opacity="0.5" />
+        <rect *ngSwitchCase="'rectangle'"
+            attr.x="{{endX-startX < 0 ? endX : startX}}" attr.y="{{endY-startY < 0 ? endY : startY}}"
+            attr.width="{{endX-startX < 0 ? startX-endX : endX-startX}}" attr.height="{{endY - startY < 0 ? startY - endY : endY - startY}}" style="fill:blue;opacity:0.5" />
+    </ng-container>
+</svg>
