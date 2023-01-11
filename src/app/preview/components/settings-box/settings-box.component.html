@@ -29,7 +29,7 @@
         </mat-toolbar>
           
         <mat-selection-list [multiple]="false">
-            <mat-list-option *ngFor="let area of areas">
+            <mat-list-option *ngFor="let area of areas; let i = index" [selected]="!showShapes && i === selectedAreaIndex" (click)="selectArea(i)">
               <input-item flex [area]="area"></input-item>
             </mat-list-option>
             <mat-list-option #newInteractiveArea class="mat-list-option mat-list-item item-button" [disableRipple]="newInteractiveArea.selected" (click)="addInteractiveArea$.next()" [selected]="showShapes">

@@ -15,6 +15,7 @@ export class FileService {
   private _interactiveAreaSource: ReplaySubject<IArea> = new ReplaySubject<IArea>(1)
   private _interactiveAreaRequestSource: ReplaySubject<'circle'|'rectangle'> = new ReplaySubject<'circle'|'rectangle'>(1)
   private _interactiveAreaActionSource: ReplaySubject<'ok'|'reset'|'cancel'|null> = new ReplaySubject<'ok'|'reset'|'cancel'|null>(1)
+  private _interactiveAreaSelectSource: ReplaySubject<number> = new ReplaySubject<number>(1)
 
   /** Notifies the selection of a file
    * @param base64file The image to announce, encoded with base64
@@ -69,4 +70,14 @@ export class FileService {
   /** Observes the action that should be taken after the interactive area has been
    * drawn on the sprite sheet */
   interactiveAreaActionChanged$ = this._interactiveAreaActionSource.asObservable()
+
+  /** Notifies a change in the selection of interactive areas
+   * @param index The index of the interactive area that is currently selected
+   */
+  selectInteractiveArea(index: number): void {
+    this._interactiveAreaSelectSource.next(index)
+  }
+
+  /** Observes selection changes in the list of the interactive areas */
+  selectedInteractiveAreaChanged$ = this._interactiveAreaSelectSource.asObservable()
 }

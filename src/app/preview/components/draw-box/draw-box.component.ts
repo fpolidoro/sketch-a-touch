@@ -49,7 +49,6 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
       switchMap((type: 'circle'|'rectangle') => mouseDownStream.pipe(
         map((event: Event) => event as MouseEvent),
         tap((event: MouseEvent) => {
-          console.log(`mouse down`)
           this.startX = event.offsetX
           this.startY = event.offsetY
           this.endX = 0
@@ -73,8 +72,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
             }
           }),
           takeUntil(mouseUpStream),
-          tap(() => console.log(`mouse up`)),
-          switchMap(() => this._fileService.interactiveAreaActionChanged$.pipe( //FIX: this doesn't work because the second time it doesn't draw the shape anymore
+          switchMap(() => this._fileService.interactiveAreaActionChanged$.pipe(
             filter((action) => action !== null),
             take(1),
             tap((action) => {
@@ -98,14 +96,16 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
                     })
                 }
                 this._fileService.announceInteractiveArea(area)
-              }else{
-                if(action === 'cancel') this.type = undefined
-                this.startX = 0
-                this.startY = 0
-                this.endX = 0
-                this.endY = 0
-                this.radius = 0
               }
+              if(action !== 'reset'){
+                this.type = undefined
+              }
+              //reset the shape
+              this.startX = 0
+              this.startY = 0
+              this.endX = 0
+              this.endY = 0
+              this.radius = 0
             })
           ))
           /*finalize(() => {

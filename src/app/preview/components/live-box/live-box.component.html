@@ -2,17 +2,25 @@
     <img [src]="image$ | async">
     <svg #canvas attr.width="{{(viewportSize !== undefined ? viewportSize.width : 0)}}"
         attr.height="{{(viewportSize !== undefined ? viewportSize.height : 0)}}" class="canvas-box">
-        <ng-container *ngFor="let area of areas">
+        <ng-container *ngFor="let area of areas; let i = index">
             <ng-container [ngSwitch]="area.type">
-                <circle *ngSwitchCase="'circle'" attr.cx="{{area.x}}" attr.cy="{{area.y}}" attr.r="{{(area | castShape).r}}" fill="red" opacity="0.5" />
+                <circle *ngSwitchCase="'circle'"
+                    attr.cx="{{area.x}}"
+                    attr.cy="{{area.y}}"
+                    attr.r="{{(area | castShape).r}}"
+                    fill="red" opacity="0.5"
+                    stroke="black" attr.stroke-width="{{selectedAreaIndex === i ? 2 : 0}}"
+                    (click)="selectArea(i)" />
                 <rect *ngSwitchCase="'rectangle'"
                     attr.x="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).w : (area | castShape).x}}"
                     attr.y="{{(area | castShape).h-(area | castShape).y < 0 ? (area | castShape).h : (area | castShape).y}}"
                     attr.width="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).x-(area | castShape).w : (area | castShape).w-(area | castShape).x}}"
                     attr.height="{{(area | castShape).h - (area | castShape).y < 0 ? (area | castShape).y - (area | castShape).h : (area | castShape).h - (area | castShape).y}}"
-                    style="fill:blue;opacity:0.5" />
+                    fill="red" opacity="0.5"
+                    stroke="black" attr.stroke-width="{{selectedAreaIndex === i ? 2 : 0}}"
+                    (click)="selectArea(i)" />
             </ng-container>
         </ng-container>
     </svg>
-    <draw-box class="canvas-box"></draw-box>
+    <draw-box class="canvas-box" [style.pointer-events]="drawBoxPointerEvents"></draw-box>
 </div>

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
-import { debounceTime, defer, exhaustMap, filter, finalize, fromEvent, iif, map, mergeMap, Observable, of, Subject, Subscription, switchMap, take, tap } from 'rxjs';
+import { FormArray, FormControl, FormGroup } from '@angular/forms';
+import { debounceTime, defer, exhaustMap, filter, finalize, fromEvent, iif, map, mergeMap, Observable, of, startWith, Subject, Subscription, switchMap, take, tap } from 'rxjs';
 import { FileService } from '@preview/services/file.service';
 import { IImageFile, IViewport } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
@@ -18,11 +18,13 @@ export class SettingsBoxComponent implements OnInit {
     viewport: new FormGroup({
       rows: new FormControl(),
       cols: new FormControl()
-    })
+    }),
+    areas: new FormArray([])
   })
 
   areas: IArea[] = []
   tmpArea?: FormGroup
+  selectedAreaIndex: number = NaN
 
   drawing: boolean = false
   showShapes: boolean = false
@@ -31,6 +33,8 @@ export class SettingsBoxComponent implements OnInit {
   addInteractiveArea$: Subject<void> = new Subject<void>()
   selectAreaType$: Subject<[Event, 'circle'|'rectangle']> = new Subject<[Event, 'circle'|'rectangle']>()
   doneDrawing$: Subject<[Event, 'ok'|'reset'|'cancel']> = new Subject<[Event, 'ok'|'reset'|'cancel']>()
+
+  action$ = this._fileService.interactiveAreaActionChanged$.pipe(startWith(null))
 
   private _subscriptions?: Subscription[]
 
@@ -74,7 +78,10 @@ export class SettingsBoxComponent implements OnInit {
       ).subscribe((values: IViewport) => this._fileService.viewportChange(values)),
       this.addInteractiveArea$.pipe(  //click on add new interaction area
         debounceTime(100),
-        tap(() => this.showShapes = true),
+        tap(() => {
+          this.showShapes = true
+          this.selectArea(NaN)
+        }),
         exhaustMap(() => this.selectAreaType$.pipe( //click on shape type
           tap(([event, what]) => {
             event.stopPropagation() //prevent the event to bubble up to parent, or it will trigger again the addInteractiveArea$
@@ -103,12 +110,17 @@ export class SettingsBoxComponent implements OnInit {
       ).subscribe(),
       this._fileService.interactiveAreaAnnounced$.pipe(
         tap((area: IArea) => this.areas.push(area))
-      ).subscribe()
+      ).subscribe(),
+      this._fileService.selectedInteractiveAreaChanged$.subscribe((index: number) => this.selectedAreaIndex = index)
     ]
   }
 
   ngOnDestroy(){
     this._subscriptions?.forEach(s => s.unsubscribe())
+  }
+
+  selectArea(index: number): void {
+    this._fileService.selectInteractiveArea(index)
   }
 
   /** Get the size of the image
