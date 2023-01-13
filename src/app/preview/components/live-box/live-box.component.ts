@@ -4,7 +4,7 @@ import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
-import { bufferToggle, filter, map, Observable, Subscription, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs';
+import { bufferToggle, filter, map, Observable, sequenceEqual, Subscription, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'live-box',
@@ -37,11 +37,11 @@ export class LiveBoxComponent implements OnInit {
         width: file.width/(+viewport.cols > 0 ? +viewport.cols : 1),
         height: file.height/(+viewport.rows > 0 ? +viewport.rows : 1)
       }
-      console.log(this.viewportSize)
+      //console.log(this.viewportSize)
     })
     this._subscription.add(this._fileService.interactiveAreaAnnounced$.subscribe((area: IArea) => {
       this.areas.push(area)
-      console.log(area)
+      //console.log(area)
     }))
     this._subscription.add(this._fileService.selectedInteractiveAreaChanged$.subscribe((index: number) => this.selectedAreaIndex = index))
     this._subscription.add(this._fileService.interactiveAreaRequested$.pipe(  //observe when the drawing mode is active:
@@ -60,6 +60,13 @@ export class LiveBoxComponent implements OnInit {
       ),
       tap(() => { //the buffer stopped, therefore the drawing session is completed...
         this.drawBoxPointerEvents = 'none'  //stop the draw-box component from capturing pointer events so to allow the user to select the previously drawn shapes
+      })
+    ).subscribe())
+    this._subscription.add(this._fileService.interactiveAreaDeleted$.pipe(  //observe whether there are areas to delete
+      filter((selection: number) => selection >= 0 && !isNaN(selection)), //there is an area to delete...
+      tap((selection: number) => {
+        this.areas.splice(selection, 1) //...remove it from the list of SVGs
+        this._fileService.deleteInteractiveArea(NaN)  //...and notify settings-box that deletion here is done, and it can proceed to delete the item from its side
       })
     ).subscribe())
   }

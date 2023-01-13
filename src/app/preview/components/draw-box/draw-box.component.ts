@@ -44,7 +44,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
     const mouseUpStream = fromEvent(window, 'mouseup')
     
     this._subscriptions.push(this._fileService.interactiveAreaRequested$.pipe(
-      tap((type) => console.log(`Received a request for a ${type}`)),
+      //tap((type) => eg(`Received a request for a ${type}`)),
       tap((type: 'circle'|'rectangle') => this.type = type),
       switchMap((type: 'circle'|'rectangle') => mouseDownStream.pipe(
         map((event: Event) => event as MouseEvent),
@@ -76,7 +76,6 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
             filter((action) => action !== null),
             take(1),
             tap((action) => {
-              console.log(`received action ${action}`)
               if(action === 'ok'){
                 let area = {
                   type: type,

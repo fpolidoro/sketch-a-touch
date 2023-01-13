@@ -8,6 +8,7 @@ import { DrawBoxComponent } from './components/draw-box/draw-box.component';
 import { InputItemComponent } from './components/input-item/input-item.component';
 import { DirectivesModule } from '@shared/directives/directives.module';
 import { CastShapePipe } from './pipes/cast-shape.pipe';
+import { PipesModule } from '@shared/pipes/pipes.module';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { CastShapePipe } from './pipes/cast-shape.pipe';
     CommonModule,
     MaterialModule,
     ReactiveFormsModule,
-    DirectivesModule
+    DirectivesModule,
+    PipesModule,
   ],
   exports: [
     LiveBoxComponent,

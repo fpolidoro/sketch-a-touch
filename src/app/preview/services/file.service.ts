@@ -16,6 +16,7 @@ export class FileService {
   private _interactiveAreaRequestSource: ReplaySubject<'circle'|'rectangle'> = new ReplaySubject<'circle'|'rectangle'>(1)
   private _interactiveAreaActionSource: ReplaySubject<'ok'|'reset'|'cancel'|null> = new ReplaySubject<'ok'|'reset'|'cancel'|null>(1)
   private _interactiveAreaSelectSource: ReplaySubject<number> = new ReplaySubject<number>(1)
+  private _deleteInteractiveAreaSource: ReplaySubject<number> = new ReplaySubject<number>(1)
 
   /** Notifies the selection of a file
    * @param base64file The image to announce, encoded with base64
@@ -80,4 +81,14 @@ export class FileService {
 
   /** Observes selection changes in the list of the interactive areas */
   selectedInteractiveAreaChanged$ = this._interactiveAreaSelectSource.asObservable()
+
+  /** Issue the command to delete the interactive area specified by {@link selected}
+   * @param selected The index of the interactive area to delete
+  */
+  deleteInteractiveArea(selected: number): void {
+    this._deleteInteractiveAreaSource.next(selected)
+  }
+
+  /** Observes the index of the interactive area to be deleted */
+  interactiveAreaDeleted$ = this._deleteInteractiveAreaSource.asObservable()
 }

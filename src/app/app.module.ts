@@ -5,16 +5,18 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { PreviewModule } from './preview/preview.module';
 import { DirectivesModule } from '@shared/directives/directives.module';
+import { PipesModule } from '@shared/pipes/pipes.module';
 
 @NgModule({
   declarations: [
-    AppComponent,
+    AppComponent
   ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     PreviewModule,
-    DirectivesModule
+    DirectivesModule,
+    PipesModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -23,7 +23,7 @@
         <mat-toolbar style="background: rgba(0,0,0,0); border-top: 1px solid #ddd;">
             <span>Interactive areas</span>
             <span style="flex: 1 1 auto;"></span>
-            <button mat-icon-button>
+            <button mat-icon-button *ngIf="areas.length > 0" (click)="deleteItem$.next()" [disabled]="selectedAreaIndex < 0 || (selectedAreaIndex | isNan)">
               <mat-icon>delete</mat-icon>
             </button>
         </mat-toolbar>
