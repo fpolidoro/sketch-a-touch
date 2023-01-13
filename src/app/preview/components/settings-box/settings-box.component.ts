@@ -38,6 +38,7 @@ export class SettingsBoxComponent implements OnInit {
   action$ = this._fileService.interactiveAreaActionChanged$.pipe(startWith(null))
 
   private _subscriptions?: Subscription[]
+  private _areasForm: FormArray = this.settings.controls['areas'] as FormArray
 
   constructor(private _fileService: FileService) { }
 
@@ -127,6 +128,7 @@ export class SettingsBoxComponent implements OnInit {
               take(1),
               tap(() => {
                 this.areas.splice(selection, 1) //delete the item from the list
+                this._areasForm.controls.splice(selection,1)
                 this._fileService.selectInteractiveArea(-1) //reset the selected item
               })
             )
@@ -134,10 +136,16 @@ export class SettingsBoxComponent implements OnInit {
         )),
       ).subscribe()
     ]
+
+    this._fileService.shareFormArray(this._areasForm) //share areasForm with live-box, so that it can draw the right patter on the SVGs
   }
 
   ngOnDestroy(){
     this._subscriptions?.forEach(s => s.unsubscribe())
+  }
+
+  ngAfterViewInit(): void {
+    this._fileService.shareFormArray(this._areasForm)
   }
 
   selectArea(index: number): void {

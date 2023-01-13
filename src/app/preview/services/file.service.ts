@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { FormArray } from '@angular/forms';
 import { IImageFile, ISize, IViewport } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
 import { Observable, ReplaySubject } from 'rxjs';
@@ -17,6 +18,7 @@ export class FileService {
   private _interactiveAreaActionSource: ReplaySubject<'ok'|'reset'|'cancel'|null> = new ReplaySubject<'ok'|'reset'|'cancel'|null>(1)
   private _interactiveAreaSelectSource: ReplaySubject<number> = new ReplaySubject<number>(1)
   private _deleteInteractiveAreaSource: ReplaySubject<number> = new ReplaySubject<number>(1)
+  private _formArraySource: ReplaySubject<FormArray> = new ReplaySubject<FormArray>(1)
 
   /** Notifies the selection of a file
    * @param base64file The image to announce, encoded with base64
@@ -91,4 +93,13 @@ export class FileService {
 
   /** Observes the index of the interactive area to be deleted */
   interactiveAreaDeleted$ = this._deleteInteractiveAreaSource.asObservable()
+
+  /** Used by {@link SettingsBoxComponent} to share its FormArray */
+  shareFormArray(array: FormArray): void {
+    this._formArraySource.next(array)
+  }
+  /** Allows components to watch the FormArray defined in {@link SettingsBoxComponent}, which contains
+   * all the {@link InputItemComponent} corresponding to interactive areas drawn on {@link LiveBoxComponent}
+   */
+  formArray$ = this._formArraySource.asObservable()
 }

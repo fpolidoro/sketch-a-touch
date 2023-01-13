@@ -1,5 +1,12 @@
 input-item {
-    gap: 16px;
+    & .form {
+        gap: 16px;
+
+        & .type {
+            align-items: center;
+            justify-content: center;
+        }
+    }
 
     & .number-box .mat-form-field-infix {
         max-width: 60px;
@@ -11,5 +18,14 @@ input-item {
 
     & .select-box .mat-form-field-infix {
         max-width: 120px;
+    }
+
+    & .mat-form-field-wrapper {
+        padding-bottom: 0;
+    }
+
+    & .mat-error {
+        font-size: 12px;
+        line-height: 16px;
     }
 }

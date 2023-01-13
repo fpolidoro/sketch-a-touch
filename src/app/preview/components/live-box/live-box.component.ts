@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { FormArray } from '@angular/forms';
 import { IImageFile, ISize } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
-import { bufferToggle, filter, map, Observable, sequenceEqual, Subscription, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs';
+import { bufferToggle, filter, map, Observable, Subscription, take, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'live-box',
@@ -23,6 +24,8 @@ export class LiveBoxComponent implements OnInit {
   areas: IArea[] = []
   selectedAreaIndex: number = NaN
   drawBoxPointerEvents: 'none'|'initial' = 'none'
+
+  formArray?: FormArray
 
   private _subscription?: Subscription
 
@@ -69,6 +72,8 @@ export class LiveBoxComponent implements OnInit {
         this._fileService.deleteInteractiveArea(NaN)  //...and notify settings-box that deletion here is done, and it can proceed to delete the item from its side
       })
     ).subscribe())
+
+    this._fileService.formArray$.pipe(take(1)).subscribe((array: FormArray) => this.formArray = array)
   }
 
   ngOnDestroy(): void {

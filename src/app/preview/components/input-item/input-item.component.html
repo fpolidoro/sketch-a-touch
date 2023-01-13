@@ -1,5 +1,5 @@
-<ng-container [formGroup]="form">
-    <div flex="column">
+<div flex [formGroup]="form" class="form">
+    <div flex="column" class="type">
         <mat-icon>{{area?.type}}</mat-icon>
         <span style="font-size: 8px;">{{area?.type}}</span>
     </div>
@@ -20,17 +20,17 @@
         <mat-select formControlName="gesture">
             <mat-option value="tap">Tap</mat-option>
         </mat-select>
-        <mat-hint>Hint</mat-hint>
+        <!-- <mat-hint>Hint</mat-hint> -->
     </mat-form-field>
     <mat-form-field appearance="outline" class="number-box">
         <mat-label>From</mat-label>
         <input matInput type="number" formControlName="from" min="0" max="10000">
-        <mat-hint>Hint</mat-hint>
+        <!-- <mat-hint>Hint</mat-hint> -->
     </mat-form-field>
     <mat-form-field appearance="outline" class="number-box">
         <mat-label>To</mat-label>
         <input matInput type="number" formControlName="to" min="0" max="10000">
-        <mat-hint>Hint</mat-hint>
+        <!-- <mat-hint>Hint</mat-hint> -->
     </mat-form-field>
     <mat-form-field appearance="outline" class="select-icon-box">
         <mat-label>Direction</mat-label>
@@ -42,6 +42,7 @@
                 <mat-icon>{{option.icon}}</mat-icon>{{option.label}}
             </mat-option>
         </mat-select>
-        <mat-hint>{{selectDirection.value?.label}}</mat-hint>
+        <!-- <mat-hint>{{selectDirection.value?.label}}</mat-hint> -->
     </mat-form-field>    
-</ng-container>
+</div>
+<mat-error *ngIf="this.form.hasError('required')">Some fields are empty</mat-error>

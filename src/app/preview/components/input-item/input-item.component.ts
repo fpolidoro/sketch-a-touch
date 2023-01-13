@@ -1,9 +1,9 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, ControlValueAccessor, FormControl, FormGroup, ValidationErrors } from '@angular/forms';
+import { AbstractControl, ControlContainer, ControlValueAccessor, FormArray, FormControl, FormGroup, UntypedFormArray, ValidationErrors } from '@angular/forms';
 import { IItem, IViewport } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
-import { debounce, debounceTime, map, of, startWith, take, withLatestFrom } from 'rxjs';
+import { debounceTime, map, of, startWith, take, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'input-item',
@@ -29,12 +29,13 @@ export class InputItemComponent implements OnInit, OnDestroy {
     { icon: 'swap_vert', label: 'Column' }
   ]
   
-  constructor(private _fileService: FileService) { }
+  constructor(private _parent: ControlContainer, private _fileService: FileService) { }
 
   ngOnInit(): void {
     if(this.area === undefined){
       throw new Error(`Cannot initialize input-item component because @Input area is undefined`)
     }else{
+      (this._parent.control as FormArray).push(this.form) //add form to parent, which is an array of input-item
       this.form.addAsyncValidators(this._asyncFormValidator)
     }
   }
@@ -55,16 +56,32 @@ export class InputItemComponent implements OnInit, OnDestroy {
       take(1),
       map(([values, viewport]) => {
         let result: ValidationErrors|null = null
-        console.log(values)
+        //console.log(values)
         if(Object.keys(values).every(k => values[k] === null || values[k] === undefined)){
           result = { required: true }
         }else{
+          if(!values.gesture){
+            result = { required: ['gesture'] }
+          }
+
           if(+values.from < 0){
-            result = { invalidStart: 'negativeFrame' }
+            result = Object.assign(result === null ? {} : result, { invalidStart: 'negativeFrame' })
+          }else if(values.from === null || values.from === undefined){
+            if(result !== null && result['required'] && result['required'].length > 0){
+              result['required'].push('from')
+            }else{
+              result = Object.assign(result === null ? {} : result, { required: ['from'] })
+            }
           }
 
           if(+values.to < 0){
             result = Object.assign(result === null ? {} : result, { invalidEnd: 'negativeFrame' })
+          }else if(values.to === null || values.to === undefined){
+            if(result !== null && result['required'] && result['required'].length > 0){
+              result['required'].push('to')
+            }else{
+              result = Object.assign(result === null ? {} : result, { required: ['to'] })
+            }
           }
           
           if(values.direction){
@@ -88,6 +105,12 @@ export class InputItemComponent implements OnInit, OnDestroy {
               if(+values.from > viewport.rows){
                 result = Object.assign(result === null ? {} : result, { invalidStart: 'frameOverflow'})
               }
+            }
+          }else{
+            if(result !== null && result['required'] && result['required'].length > 0){
+              result['required'].push('direction')
+            }else{
+              result = Object.assign(result === null ? {} : result, { required: ['direction'] })
             }
           }
         }
