@@ -87,23 +87,23 @@ export class InputItemComponent implements OnInit, OnDestroy {
           if(values.direction){
             if(values.direction.label === 'Row'){
               if(viewport.cols === 1){
-                result = Object.assign(result === null ? {} : result, { invalidDirection: true })
+                result = Object.assign(result === null ? {} : result, { invalidDirection: 'noHorizontalSpace' })
               }
               if(+values.to > viewport.cols){
-                result = Object.assign(result === null ? {} : result, { invalidEnd: 'frameOverflow' })
+                result = Object.assign(result === null ? {} : result, { invalidEnd: 'frameOverflow:col' })
               }
               if(+values.from > viewport.cols){
-                result = Object.assign(result === null ? {} : result, { invalidStart: 'frameOverflow'})
+                result = Object.assign(result === null ? {} : result, { invalidStart: 'frameOverflow:col'})
               }
             }else if(values.direction.label === 'Column'){
               if(viewport.rows === 1){
-                result = Object.assign(result === null ? {} : result, { invalidDirection: true })
+                result = Object.assign(result === null ? {} : result, { invalidDirection: 'noVerticalSpace' })
               }
               if(+values.to > viewport.rows){
-                result = Object.assign(result === null ? {} : result, { invalidEnd: 'frameOverflow' })
+                result = Object.assign(result === null ? {} : result, { invalidEnd: 'frameOverflow:row' })
               }
               if(+values.from > viewport.rows){
-                result = Object.assign(result === null ? {} : result, { invalidStart: 'frameOverflow'})
+                result = Object.assign(result === null ? {} : result, { invalidStart: 'frameOverflow:row'})
               }
             }
           }else{

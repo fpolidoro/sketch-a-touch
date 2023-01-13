@@ -9,6 +9,7 @@ import { InputItemComponent } from './components/input-item/input-item.component
 import { DirectivesModule } from '@shared/directives/directives.module';
 import { CastShapePipe } from './pipes/cast-shape.pipe';
 import { PipesModule } from '@shared/pipes/pipes.module';
+import { ErrorTextPipe } from './pipes/error-text.pipe';
 
 @NgModule({
   declarations: [
@@ -17,6 +18,7 @@ import { PipesModule } from '@shared/pipes/pipes.module';
     DrawBoxComponent,
     InputItemComponent,
     CastShapePipe,
+    ErrorTextPipe,
   ],
   imports: [
     CommonModule,
@@ -28,7 +30,8 @@ import { PipesModule } from '@shared/pipes/pipes.module';
   exports: [
     LiveBoxComponent,
     SettingsBoxComponent,
-    CastShapePipe
+    CastShapePipe,
+    ErrorTextPipe,
   ]
 })
 export class PreviewModule { }

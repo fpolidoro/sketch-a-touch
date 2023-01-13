@@ -3,36 +3,21 @@
         <mat-icon>{{area?.type}}</mat-icon>
         <span style="font-size: 8px;">{{area?.type}}</span>
     </div>
-    <!-- <mat-form-field appearance="outline" class="select-icon-box">
-        <mat-label>Area</mat-label>
-        <mat-select #selectArea>
-            <mat-select-trigger>
-                <mat-icon>{{ selectArea.value?.icon }}</mat-icon>
-            </mat-select-trigger>
-            <mat-option [value]="option" *ngFor="let option of areaType">
-                <mat-icon>{{option.icon}}</mat-icon>{{option.label}}
-            </mat-option>
-        </mat-select>
-        <mat-hint>{{selectArea.value?.label}}</mat-hint>
-    </mat-form-field> -->
-    <mat-form-field appearance="outline" class="select-box">
+    <mat-form-field appearance="outline" class="select-box" [class.mat-form-field-invalid]="form.hasError('invalidGesture') && !form.hasError('required')">
         <mat-label>Gesture</mat-label>
         <mat-select formControlName="gesture">
             <mat-option value="tap">Tap</mat-option>
         </mat-select>
-        <!-- <mat-hint>Hint</mat-hint> -->
     </mat-form-field>
-    <mat-form-field appearance="outline" class="number-box">
-        <mat-label>From</mat-label>
+    <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.hasError('invalidStart') && !form.hasError('required')">
+        <mat-label>Start</mat-label>
         <input matInput type="number" formControlName="from" min="0" max="10000">
-        <!-- <mat-hint>Hint</mat-hint> -->
     </mat-form-field>
-    <mat-form-field appearance="outline" class="number-box">
-        <mat-label>To</mat-label>
+    <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.hasError('invalidEnd') && !form.hasError('required')">
+        <mat-label>End</mat-label>
         <input matInput type="number" formControlName="to" min="0" max="10000">
-        <!-- <mat-hint>Hint</mat-hint> -->
     </mat-form-field>
-    <mat-form-field appearance="outline" class="select-icon-box">
+    <mat-form-field appearance="outline" class="select-icon-box" [class.mat-form-field-invalid]="form.hasError('invalidDirection') && !form.hasError('required')">
         <mat-label>Direction</mat-label>
         <mat-select #selectDirection formControlName="direction">
             <mat-select-trigger>
@@ -45,4 +30,4 @@
         <!-- <mat-hint>{{selectDirection.value?.label}}</mat-hint> -->
     </mat-form-field>    
 </div>
-<mat-error *ngIf="this.form.hasError('required')">Some fields are empty</mat-error>
+<mat-error *ngIf="this.form.errors !== null">{{this.form.errors | errorText}}</mat-error>

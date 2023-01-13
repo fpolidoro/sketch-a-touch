@@ -2,36 +2,54 @@
     <img [src]="image$ | async">
     <svg #canvas attr.width="{{(viewportSize !== undefined ? viewportSize.width : 0)}}"
         attr.height="{{(viewportSize !== undefined ? viewportSize.height : 0)}}" class="canvas-box">
+        <defs>
+            <pattern id="invalid" patternUnits="userSpaceOnUse" width="20" height="80" patternTransform="scale(1) rotate(45)">
+                <rect x="0" y="0" width="100%" height="100%" fill="rgba(0, 0, 0, 0.15)"></rect>
+                <path stroke="rgba(0,0,0,0.7)" fill="none"
+                    d="M0 10h20z" stroke-width="10"></path>
+                <path stroke="rgba(0,0,0,0.7)" fill="none" d="M0 30h20z" stroke-width="10"></path>
+                <path stroke="rgba(0,0,0,0.7)" fill="none" d="M0 50h20z" stroke-width="10"></path>
+                <path stroke="rgba(0,0,0,0.7)" fill="none" d="M0 70h20z" stroke-width="10"></path>
+            </pattern>
+            <pattern id="invalid-selected" patternUnits="userSpaceOnUse" width="20" height="80" patternTransform="scale(1) rotate(45)">
+                <rect x="0" y="0" width="100%" height="100%" fill="rgba(0, 0, 0, 0.15)"></rect>
+                <path stroke="rgba(255,0,0,0.7)" fill="none"
+                    d="M0 10h20z" stroke-width="10"></path>
+                <path stroke="rgba(255,0,0,0.7)" fill="none" d="M0 30h20z" stroke-width="10"></path>
+                <path stroke="rgba(255,0,0,0.7)" fill="none" d="M0 50h20z" stroke-width="10"></path>
+                <path stroke="rgba(255,0,0,0.7)" fill="none" d="M0 70h20z" stroke-width="10"></path>
+            </pattern>
+            <pattern id='pending' patternUnits='userSpaceOnUse' width='40' height='40' patternTransform='scale(1) rotate(0)'>
+                <rect x='0' y='0' width='100%' height='100%' fill='rgba(0, 0, 0, 0.15)'/>
+                <path d='M20-5V5m0 30v10m20-30v10M0 15v10' stroke-linecap='square' stroke-width='7.5' stroke="rgba(0, 0, 0, 0.7)" fill='none'/>
+                <path d='M-5 40H5M-5 0H5m30 0h10M35 40h10M15 20h10' stroke-linecap='square' stroke-width='7.5' stroke="rgba(0, 0, 0, 0.7)" fill='none'/>
+            </pattern>
+            <pattern id='pending-selected' patternUnits='userSpaceOnUse' width='40' height='40' patternTransform='scale(1) rotate(0)'>
+                <rect x='0' y='0' width='100%' height='100%' fill='rgba(0, 0, 0, 0.15)'/>
+                <path d='M20-5V5m0 30v10m20-30v10M0 15v10' stroke-linecap='square' stroke-width='7.5' stroke="rgba(255, 0, 0, 0.7)" fill='none'/>
+                <path d='M-5 40H5M-5 0H5m30 0h10M35 40h10M15 20h10' stroke-linecap='square' stroke-width='7.5' stroke="rgba(255, 0, 0, 0.7)" fill='none'/>
+            </pattern>
+        </defs>
         <ng-container *ngFor="let area of areas; let i = index">
             <ng-container [ngSwitch]="area.type">
-                <defs>
-                    <pattern id="invalid" patternUnits="userSpaceOnUse" width="20" height="80" patternTransform="scale(1) rotate(45)">
-                        <rect x="0" y="0" width="100%" height="100%" fill="rgba(0, 0, 0, 0.15)"></rect>
-                        <path stroke="rgba(0, 0, 0, 0.7)" fill="none" d="M0 10h20z" stroke-width="10"></path>
-                        <path stroke="rgba(0, 0, 0, 0.7)" fill="none" d="M0 30h20z" stroke-width="10"></path>
-                        <path stroke="rgba(0, 0, 0, 0.7)" fill="none" d="M0 50h20z" stroke-width="10"></path>
-                        <path stroke="rgba(0, 0, 0, 0.7)" fill="none" d="M0 70h20z" stroke-width="10"></path>
-                    </pattern>
-                    <pattern id='pending' patternUnits='userSpaceOnUse' width='40' height='40' patternTransform='scale(1) rotate(0)'>
-                        <rect x='0' y='0' width='100%' height='100%' fill='rgba(0, 0, 0, 0.15)'/>
-                        <path d='M20-5V5m0 30v10m20-30v10M0 15v10' stroke-linecap='square' stroke-width='7.5' stroke='rgba(0, 0, 0, 0.7)' fill='none'/>
-                        <path d='M-5 40H5M-5 0H5m30 0h10M35 40h10M15 20h10' stroke-linecap='square' stroke-width='7.5' stroke='rgba(0, 0, 0, 0.7)' fill='none'/>
-                    </pattern>
-                </defs>
                 <circle *ngSwitchCase="'circle'"
                     attr.cx="{{area.x}}"
                     attr.cy="{{area.y}}"
                     attr.r="{{(area | castShape).r}}"
-                    attr.fill="{{this.formArray!.controls[i].valid ? 'red' : this.formArray!.controls[i].pending ? 'url(#pending)' : 'url(#invalid)'}}"
-                    opacity="0.5" stroke="black" attr.stroke-width="{{selectedAreaIndex === i ? 2 : 0}}"
+                    attr.fill="{{this.formArray!.controls[i].valid ? 'red' : this.formArray!.controls[i].pending ?
+                    'url(#pending'+ (selectedAreaIndex === i ? '-selected' : '') +')' :
+                    'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
+                    opacity="0.5" attr.stroke="{{selectedAreaIndex === i ? 'red' : 'black'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="selectArea(i)" />
                 <rect *ngSwitchCase="'rectangle'"
                     attr.x="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).w : (area | castShape).x}}"
                     attr.y="{{(area | castShape).h-(area | castShape).y < 0 ? (area | castShape).h : (area | castShape).y}}"
                     attr.width="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).x-(area | castShape).w : (area | castShape).w-(area | castShape).x}}"
                     attr.height="{{(area | castShape).h - (area | castShape).y < 0 ? (area | castShape).y - (area | castShape).h : (area | castShape).h - (area | castShape).y}}"
-                    attr.fill="{{this.formArray!.controls[i].valid ? 'red' : this.formArray!.controls[i].pending ? 'url(#pending)' : 'url(#invalid)'}}"
-                    opacity="0.5" stroke="black" attr.stroke-width="{{selectedAreaIndex === i ? 2 : 0}}"
+                    attr.fill="{{this.formArray!.controls[i].valid ? 'red' : this.formArray!.controls[i].pending ?
+                        'url(#pending'+ (selectedAreaIndex === i ? '-selected' : '') +')' :
+                        'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
+                    opacity="0.5" attr.stroke="{{selectedAreaIndex === i ? 'red' : 'black'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="selectArea(i)" />
             </ng-container>
         </ng-container>
