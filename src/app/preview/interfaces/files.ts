@@ -13,6 +13,14 @@ export interface IViewport {
 }
 
 export interface IItem {
-  icon: string,
-  label: string
+  icon?: string,
+  label: string,
+  value: string
+}
+
+export interface INestedItem {
+  icon?: string,
+  label: string,
+  value?: string,
+  items?: IItem[]
 }

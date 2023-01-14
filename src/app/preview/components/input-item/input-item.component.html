@@ -6,7 +6,14 @@
     <mat-form-field appearance="outline" class="select-box" [class.mat-form-field-invalid]="form.hasError('invalidGesture') && !form.hasError('required')">
         <mat-label>Gesture</mat-label>
         <mat-select formControlName="gesture">
-            <mat-option value="tap">Tap</mat-option>
+            <ng-container *ngFor="let gesture of gestures">
+                <mat-option *ngIf="gesture.items === undefined" value="gesture.value">{{gesture.label}}</mat-option>
+                <mat-optgroup *ngIf="gesture.items !== undefined" [label]="gesture.label">
+                    <mat-option *ngFor="let item of gesture.items" [value]="item.value">
+                        {{item.label}}
+                    </mat-option>
+                </mat-optgroup>
+            </ng-container>
         </mat-select>
     </mat-form-field>
     <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.hasError('invalidStart') && !form.hasError('required')">

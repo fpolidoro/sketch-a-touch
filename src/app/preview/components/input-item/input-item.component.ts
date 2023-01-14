@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, ControlContainer, ControlValueAccessor, FormArray, FormControl, FormGroup, UntypedFormArray, ValidationErrors } from '@angular/forms';
-import { IItem, IViewport } from '@preview/interfaces/files';
+import { IItem, INestedItem, IViewport } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 import { debounceTime, map, of, startWith, take, withLatestFrom } from 'rxjs';
@@ -21,12 +21,25 @@ export class InputItemComponent implements OnInit, OnDestroy {
   })
 
   readonly areaType: IItem[] = [
-    { icon: 'circle', label: 'Circle' },
-    { icon: 'rectangle', label: 'Rectangle' }
+    { icon: 'circle', label: 'Circle', value: 'circle' },
+    { icon: 'rectangle', label: 'Rectangle', value: 'rect' }
   ]
   readonly direction: IItem[] = [
-    { icon: 'swap_horiz', label: 'Row' },
-    { icon: 'swap_vert', label: 'Column' }
+    { icon: 'swap_horiz', label: 'Row', value: 'row' },
+    { icon: 'swap_vert', label: 'Column', value: 'col' }
+  ]
+  readonly gestures: INestedItem[] = [
+    { label: 'Tap', value: 'tap' },
+    { label: 'Double tap', value: 'double-tap' },
+    { label: 'Long press', value: 'long-press' },
+    { label: 'Swipe', items: [
+      { label: 'Swipe left',value: 'swipe-left'  },
+      { label: 'Swipe right', value: 'swipe-right' },
+    ] },
+    { label: 'Pinch', items: [
+      { label: 'Pinch in', value: 'pinch-in' },
+      { label: 'Pinch out', value: 'pinch-out' },
+    ]}
   ]
   
   constructor(private _parent: ControlContainer, private _fileService: FileService) { }
@@ -37,6 +50,9 @@ export class InputItemComponent implements OnInit, OnDestroy {
     }else{
       (this._parent.control as FormArray).push(this.form) //add form to parent, which is an array of input-item
       this.form.addAsyncValidators(this._asyncFormValidator)
+      this._fileService.viewportChanged$.pipe(  //observe changes on viewport size...
+        debounceTime(200)
+      ).subscribe(() => this.form.updateValueAndValidity()) //...and update the validity of the form
     }
   }
 
@@ -46,17 +62,12 @@ export class InputItemComponent implements OnInit, OnDestroy {
 
   private _asyncFormValidator = (control: AbstractControl) => {
     return control.valueChanges.pipe(
-      withLatestFrom(this._fileService.viewportChanged$.pipe(
-        startWith(<IViewport>{
-          rows: 1,
-          cols: 1
-        })
-      )),
+      withLatestFrom(this._fileService.viewportChanged$),
       debounceTime(100),
       take(1),
       map(([values, viewport]) => {
         let result: ValidationErrors|null = null
-        //console.log(values)
+        console.log(`validating form`)
         if(Object.keys(values).every(k => values[k] === null || values[k] === undefined)){
           result = { required: true }
         }else{
@@ -89,20 +100,20 @@ export class InputItemComponent implements OnInit, OnDestroy {
               if(viewport.cols === 1){
                 result = Object.assign(result === null ? {} : result, { invalidDirection: 'noHorizontalSpace' })
               }
-              if(+values.to > viewport.cols){
+              if(+values.to >= viewport.cols){
                 result = Object.assign(result === null ? {} : result, { invalidEnd: 'frameOverflow:col' })
               }
-              if(+values.from > viewport.cols){
+              if(+values.from >= viewport.cols){
                 result = Object.assign(result === null ? {} : result, { invalidStart: 'frameOverflow:col'})
               }
             }else if(values.direction.label === 'Column'){
               if(viewport.rows === 1){
                 result = Object.assign(result === null ? {} : result, { invalidDirection: 'noVerticalSpace' })
               }
-              if(+values.to > viewport.rows){
+              if(+values.to >= viewport.rows){
                 result = Object.assign(result === null ? {} : result, { invalidEnd: 'frameOverflow:row' })
               }
-              if(+values.from > viewport.rows){
+              if(+values.from >= viewport.rows){
                 result = Object.assign(result === null ? {} : result, { invalidStart: 'frameOverflow:row'})
               }
             }

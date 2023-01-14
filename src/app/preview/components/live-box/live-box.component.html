@@ -36,20 +36,20 @@
                     attr.cx="{{area.x}}"
                     attr.cy="{{area.y}}"
                     attr.r="{{(area | castShape).r}}"
-                    attr.fill="{{this.formArray!.controls[i].valid ? 'red' : this.formArray!.controls[i].pending ?
+                    attr.fill="{{this.formArray!.controls[i].valid ? '#4db6ac' : this.formArray!.controls[i].pending ?
                     'url(#pending'+ (selectedAreaIndex === i ? '-selected' : '') +')' :
                     'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
-                    opacity="0.5" attr.stroke="{{selectedAreaIndex === i ? 'red' : 'black'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
+                    opacity="0.5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="selectArea(i)" />
                 <rect *ngSwitchCase="'rectangle'"
                     attr.x="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).w : (area | castShape).x}}"
                     attr.y="{{(area | castShape).h-(area | castShape).y < 0 ? (area | castShape).h : (area | castShape).y}}"
                     attr.width="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).x-(area | castShape).w : (area | castShape).w-(area | castShape).x}}"
                     attr.height="{{(area | castShape).h - (area | castShape).y < 0 ? (area | castShape).y - (area | castShape).h : (area | castShape).h - (area | castShape).y}}"
-                    attr.fill="{{this.formArray!.controls[i].valid ? 'red' : this.formArray!.controls[i].pending ?
+                    attr.fill="{{this.formArray!.controls[i].valid ? '#4db6ac' : this.formArray!.controls[i].pending ?
                         'url(#pending'+ (selectedAreaIndex === i ? '-selected' : '') +')' :
                         'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
-                    opacity="0.5" attr.stroke="{{selectedAreaIndex === i ? 'red' : 'black'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
+                    opacity="0.5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="selectArea(i)" />
             </ng-container>
         </ng-container>
