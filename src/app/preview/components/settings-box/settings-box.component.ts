@@ -4,6 +4,8 @@ import { debounceTime, defer, delay, EMPTY, exhaustMap, filter, finalize, fromEv
 import { FileService } from '@preview/services/file.service';
 import { IImageFile, IViewport } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
+import { MatDialog } from '@angular/material/dialog';
+import { GuideDialogComponent } from '../guide-dialog/guide-dialog.component';
 
 @Component({
   selector: 'settings-box',
@@ -34,13 +36,14 @@ export class SettingsBoxComponent implements OnInit {
   selectAreaType$: Subject<[Event, 'circle'|'rectangle']> = new Subject<[Event, 'circle'|'rectangle']>()
   doneDrawing$: Subject<[Event, 'ok'|'reset'|'cancel']> = new Subject<[Event, 'ok'|'reset'|'cancel']>()
   deleteItem$: Subject<void> = new Subject<void>()
+  openGuide$: Subject<void> = new Subject<void>()
 
   action$ = this._fileService.interactiveAreaActionChanged$.pipe(startWith(null))
 
   private _subscriptions?: Subscription[]
   private _areasForm: FormArray = this.settings.controls['areas'] as FormArray
 
-  constructor(private _fileService: FileService) { }
+  constructor(private _fileService: FileService, private _dialog: MatDialog) { }
 
   ngOnInit(): void {
     this.settings.controls['viewport'].patchValue({
@@ -134,6 +137,9 @@ export class SettingsBoxComponent implements OnInit {
             )
           })
         )),
+      ).subscribe(),
+      this.openGuide$.pipe(
+        exhaustMap(() => this._dialog.open(GuideDialogComponent).afterClosed())
       ).subscribe()
     ]
 

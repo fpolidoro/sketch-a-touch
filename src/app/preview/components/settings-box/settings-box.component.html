@@ -24,7 +24,10 @@
             <span>Interactive areas</span>
             <span style="flex: 1 1 auto;"></span>
             <button mat-icon-button *ngIf="areas.length > 0" (click)="deleteItem$.next()" [disabled]="selectedAreaIndex < 0 || (selectedAreaIndex | isNan)">
-              <mat-icon>delete</mat-icon>
+                <mat-icon>delete</mat-icon>
+            </button>
+            <button mat-icon-button (click)="openGuide$.next()">
+                <mat-icon>help_outline</mat-icon>
             </button>
         </mat-toolbar>
           
@@ -54,7 +57,7 @@
                               <div flex gap="16">
                                   <button mat-stroked-button (click)="doneDrawing$.next([$event, 'cancel'])">Cancel</button>
                                   <button mat-stroked-button (click)="doneDrawing$.next([$event, 'reset'])">Reset</button>
-                                  <button mat-stroked-button (click)="doneDrawing$.next([$event, 'ok'])">Confirm</button>
+                                  <button mat-flat-button color="primary" (click)="doneDrawing$.next([$event, 'ok'])">Confirm</button>
                               </div>
                           </div>
                       </ng-container>

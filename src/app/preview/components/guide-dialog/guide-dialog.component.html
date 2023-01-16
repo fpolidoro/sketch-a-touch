@@ -1,0 +1,20 @@
+<h1 mat-dialog-title>Guide</h1>
+<div mat-dialog-content>
+  <span>An interactive area defines a region on the viewport that reacts to a gesture performed by the user by animating a portion of the spritesheet.</span>
+  <br style="margin-bottom: 8px;">
+  <span>To define an interactive area, click on the <i>Add interactive area</i> button, select the shape the area should have and draw it on the sprite sheet.</span>
+  <br>
+  <span>Once the area has been drawn, its set up can be completed by specifying:
+    <ul style="margin: 4px 0; padding: 0 24px;">
+        <li>the <b>gesture</b> the area should react to</li>
+        <li>the <b>start</b> frame from which the sprite sheet shall start its transition</li>
+        <li>the <b>end</b> frame where such a transition shall stop</li>
+        <li>the <b>direction</b>, horizontal or vertical, in which the sprite shall slide</li>
+    </ul>
+    By default, the area is automatically disabled once the spritesheet reaches the end frame, meaning that it will stop reacting to the user gestures until
+    the spritesheet is reset to the start frame. To change this behavior, untick from the checkbox <i>Disable area on end</i>.
+</span>
+</div>
+<div mat-dialog-actions>
+  <button mat-button cdkFocusInitial (click)="close()">Close</button>
+</div>

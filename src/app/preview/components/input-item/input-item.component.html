@@ -20,21 +20,26 @@
         <mat-label>Start</mat-label>
         <input matInput type="number" formControlName="from" min="0" max="10000">
     </mat-form-field>
-    <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.hasError('invalidEnd') && !form.hasError('required')">
-        <mat-label>End</mat-label>
-        <input matInput type="number" formControlName="to" min="0" max="10000">
-    </mat-form-field>
-    <mat-form-field appearance="outline" class="select-icon-box" [class.mat-form-field-invalid]="form.hasError('invalidDirection') && !form.hasError('required')">
-        <mat-label>Direction</mat-label>
-        <mat-select #selectDirection formControlName="direction">
-            <mat-select-trigger>
-                <mat-icon>{{ selectDirection.value?.icon }}</mat-icon>
-            </mat-select-trigger>
-            <mat-option [value]="option" *ngFor="let option of direction">
-                <mat-icon>{{option.icon}}</mat-icon>{{option.label}}
-            </mat-option>
-        </mat-select>
-        <!-- <mat-hint>{{selectDirection.value?.label}}</mat-hint> -->
-    </mat-form-field>    
+    <div flex="column">
+        <div flex style="gap: 16px">
+            <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.hasError('invalidEnd') && !form.hasError('required')">
+                <mat-label>End</mat-label>
+                <input matInput type="number" formControlName="to" min="0" max="10000">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="select-icon-box" [class.mat-form-field-invalid]="form.hasError('invalidDirection') && !form.hasError('required')">
+                <mat-label>Direction</mat-label>
+                <mat-select #selectDirection formControlName="direction">
+                    <mat-select-trigger>
+                        <mat-icon>{{ selectDirection.value?.icon }}</mat-icon>
+                    </mat-select-trigger>
+                    <mat-option [value]="option" *ngFor="let option of direction">
+                        <mat-icon>{{option.icon}}</mat-icon>{{option.label}}
+                    </mat-option>
+                </mat-select>
+                <!-- <mat-hint>{{selectDirection.value?.label}}</mat-hint> -->
+            </mat-form-field>
+        </div>
+        <mat-checkbox color="primary" formControlName="disableOnEnd">Disable area on end</mat-checkbox>
+    </div>
 </div>
 <mat-error *ngIf="this.form.errors !== null">{{this.form.errors | errorText}}</mat-error>

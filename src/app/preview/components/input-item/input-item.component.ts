@@ -17,7 +17,8 @@ export class InputItemComponent implements OnInit, OnDestroy {
     gesture: new FormControl(),
     from: new FormControl(),
     to: new FormControl(),
-    direction: new FormControl()
+    direction: new FormControl(),
+    disableOnEnd: new FormControl(true)
   })
 
   readonly areaType: IItem[] = [

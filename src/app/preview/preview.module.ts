@@ -10,6 +10,7 @@ import { DirectivesModule } from '@shared/directives/directives.module';
 import { CastShapePipe } from './pipes/cast-shape.pipe';
 import { PipesModule } from '@shared/pipes/pipes.module';
 import { ErrorTextPipe } from './pipes/error-text.pipe';
+import { GuideDialogComponent } from './components/guide-dialog/guide-dialog.component';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import { ErrorTextPipe } from './pipes/error-text.pipe';
     InputItemComponent,
     CastShapePipe,
     ErrorTextPipe,
+    GuideDialogComponent,
   ],
   imports: [
     CommonModule,
