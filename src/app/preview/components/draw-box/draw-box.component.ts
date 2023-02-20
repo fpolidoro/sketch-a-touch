@@ -31,8 +31,8 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
       filter(([viewport, file]) => file !== null),
     ).subscribe(([viewport, file]) => {
       this.viewport = {
-        width: file.width/(+viewport.cols > 0 ? +viewport.cols : 1),
-        height: file.height/(+viewport.rows > 0 ? +viewport.rows : 1)
+        width: file.width,///(+viewport.cols > 0 ? +viewport.cols : 1),
+        height: file.height///(+viewport.rows > 0 ? +viewport.rows : 1)
       }
       console.warn(this.viewport)
     }))

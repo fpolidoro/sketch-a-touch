@@ -1,7 +1,8 @@
-<div style.width="{{viewportSize.width}}px" style.height="{{viewportSize.height}}px" style="position: relative; overflow: hidden;">
+<div
+    style="position: relative; overflow: hidden;">
     <img [src]="image$ | async">
-    <svg #canvas attr.width="{{(viewportSize !== undefined ? viewportSize.width : 0)}}"
-        attr.height="{{(viewportSize !== undefined ? viewportSize.height : 0)}}" class="canvas-box">
+    <svg #canvas attr.width="{{(originalSize !== undefined ? originalSize.width : 0)}}"
+        attr.height="{{(originalSize !== undefined ? originalSize.height : 0)}}" class="canvas-box">
         <defs>
             <pattern id="invalid" patternUnits="userSpaceOnUse" width="20" height="80" patternTransform="scale(1) rotate(45)">
                 <rect x="0" y="0" width="100%" height="100%" fill="rgba(0, 0, 0, 0.15)"></rect>
@@ -54,5 +55,9 @@
             </ng-container>
         </ng-container>
     </svg>
-    <draw-box class="canvas-box" [style.pointer-events]="drawBoxPointerEvents"></draw-box>
+    <draw-box class="canvas-box" [style.pointer-events]="drawBoxPointerEvents" style.background-size="{{viewportSize.width}}px {{viewportSize.height}}px"></draw-box>
 </div>
+
+<!-- style.background-image="linear-gradient(to right, grey 1px, transparent 1px), linear-gradient(to bottom, grey 1px, transparent 1px)" -->
+
+<!-- style.width="{{viewportSize.width}}px" style.height="{{viewportSize.height}}px" -->

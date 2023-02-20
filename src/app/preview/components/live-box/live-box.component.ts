@@ -13,6 +13,7 @@ import { bufferToggle, filter, map, Observable, Subscription, take, tap, withLat
   styleUrls: ['./live-box.component.scss']
 })
 export class LiveBoxComponent implements OnInit {
+  originalSize?: ISize
   viewportSize: ISize = {
     width: 1,
     height: 1
@@ -36,6 +37,10 @@ export class LiveBoxComponent implements OnInit {
       withLatestFrom(this._fileService.fileUploaded$),
       filter(([viewport, file]) => file !== null),
     ).subscribe(([viewport, file]) => {
+      this.originalSize = {
+        width: file.width,
+        height: file.height
+      }
       this.viewportSize = {
         width: file.width/(+viewport.cols > 0 ? +viewport.cols : 1),
         height: file.height/(+viewport.rows > 0 ? +viewport.rows : 1)
