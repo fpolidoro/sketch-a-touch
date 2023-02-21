@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormArray } from '@angular/forms';
 import { IImageFile, ISize } from '@preview/interfaces/files';
-import { IArea } from '@preview/interfaces/shapes';
+import { IArea, ITile } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
@@ -27,6 +27,7 @@ export class LiveBoxComponent implements OnInit {
   drawBoxPointerEvents: 'none'|'initial' = 'none'
 
   formArray?: FormArray
+  gridIndexes: ITile[] = []
 
   private _subscription?: Subscription
 
@@ -45,7 +46,21 @@ export class LiveBoxComponent implements OnInit {
         width: file.width/(+viewport.cols > 0 ? +viewport.cols : 1),
         height: file.height/(+viewport.rows > 0 ? +viewport.rows : 1)
       }
-      //console.log(this.viewportSize)
+      this.gridIndexes.splice(0, this.gridIndexes.length)
+      
+      //generate the indexes for the tiles of the grid that help the user numbering the frames
+      for(let i=0; i<+viewport.cols*+viewport.rows; i++){
+        this.gridIndexes.push()
+      }
+      for(let i=0; i<+viewport.rows; i++){
+        for(let j=0; j<+viewport.cols; j++){
+          this.gridIndexes.push({
+            c: j,
+            r: i
+          })
+        }
+      }
+      console.log(this.gridIndexes)
     })
     this._subscription.add(this._fileService.interactiveAreaAnnounced$.subscribe((area: IArea) => {
       this.areas.push(area)

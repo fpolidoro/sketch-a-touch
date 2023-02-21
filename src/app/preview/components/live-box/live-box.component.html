@@ -57,6 +57,15 @@
     </svg>
     <draw-box class="canvas-box" [style.pointer-events]="drawBoxPointerEvents" style.background-size="{{viewportSize.width}}px {{viewportSize.height}}px"></draw-box>
     <div class="viewport" style.width="{{viewportSize.width}}px" style.height="{{viewportSize.height}}px"></div>
+    <mat-grid-list *ngIf="originalSize" [cols]="originalSize.width/viewportSize.width" rowHeight="{{viewportSize.height}}px" class="grid-box">
+        <mat-grid-tile *ngFor="let tile of gridIndexes">
+            <div class="label">
+                <span [class.selected]="!(selectedAreaIndex | isNan) && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Column' && areas[selectedAreaIndex].pos.c === tile.c">{{tile.c}}</span>
+                , 
+                <span [class.selected]="!(selectedAreaIndex | isNan) && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Row' && areas[selectedAreaIndex].pos.r === tile.r">{{tile.r}}</span>
+            </div>
+        </mat-grid-tile>
+    </mat-grid-list>
 </div>
 
 <!-- style.background-image="linear-gradient(to right, grey 1px, transparent 1px), linear-gradient(to bottom, grey 1px, transparent 1px)" -->

@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ISize } from '@preview/interfaces/files';
+import { ISize, IViewport } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 import { fromEvent, tap, switchMap, takeUntil, finalize, map, Subscription, withLatestFrom, filter, take } from 'rxjs';
@@ -22,6 +22,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
   endY: number = 0
 
   private _subscriptions: Subscription[] = []
+  private _grid?: IViewport
 
   constructor(private _fileService: FileService) { }
 
@@ -34,6 +35,7 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
         width: file.width,///(+viewport.cols > 0 ? +viewport.cols : 1),
         height: file.height///(+viewport.rows > 0 ? +viewport.rows : 1)
       }
+      this._grid = viewport
       console.warn(this.viewport)
     }))
   }
@@ -81,17 +83,30 @@ export class DrawBoxComponent implements OnInit, OnDestroy {
                   type: type,
                   x: this.startX,
                   y: this.startY,
+                  pos: {
+                    c: -1,
+                    r: -1
+                  }
                 }
                 switch(type){
                   case 'circle':
                     area = Object.assign(area, {
-                      r: this.radius
+                      r: this.radius,
+                      pos: {
+                        c: Math.floor(this.startX/(this.viewport!.width/(+this._grid!.cols > 0 ? +this._grid!.cols : 1))),
+                        r: Math.floor(this.startY/(this.viewport!.height/(+this._grid!.rows > 0 ? +this._grid!.rows : 1)))
+                      }
                     })
+                    console.log(`${this.viewport!.height}/${this._grid!.rows}/${this.startY}`)
                     break
                   case 'rectangle':
                     area = Object.assign(area, {
                       w: this.endX,
-                      h: this.endY
+                      h: this.endY,
+                      pos: {
+                        c: Math.floor(this.startX/(this.viewport!.width/(+this._grid!.cols > 0 ? +this._grid!.cols : 1))),
+                        r: Math.floor(this.startY/(this.viewport!.height/(+this._grid!.rows > 0 ? +this._grid!.rows : 1)))
+                      }
                     })
                 }
                 this._fileService.announceInteractiveArea(area)
