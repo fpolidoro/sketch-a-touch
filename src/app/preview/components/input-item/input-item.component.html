@@ -16,13 +16,17 @@
             </ng-container>
         </mat-select>
     </mat-form-field>
-    <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.hasError('invalidStart') && !form.hasError('required')">
+    <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.hasError('invalidStart') && !form.hasError('required')"
+        matTooltip="The first frame of the animation"
+        matTooltipShowDelay="500">
         <mat-label>Start</mat-label>
         <input matInput type="number" formControlName="from" min="0" max="10000">
     </mat-form-field>
     <div flex="column">
         <div flex style="gap: 16px">
-            <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.hasError('invalidEnd') && !form.hasError('required')">
+            <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.hasError('invalidEnd') && !form.hasError('required')"
+            matTooltip="The last frame of the animation"
+            matTooltipShowDelay="500">
                 <mat-label>End</mat-label>
                 <input matInput type="number" formControlName="to" min="0" max="10000">
             </mat-form-field>
@@ -39,7 +43,10 @@
                 <!-- <mat-hint>{{selectDirection.value?.label}}</mat-hint> -->
             </mat-form-field>
         </div>
-        <mat-checkbox color="primary" formControlName="disableOnEnd">Disable area on end</mat-checkbox>
+        <mat-checkbox color="primary" formControlName="disableOnEnd"
+            matTooltip="Disable the area once the animation completes, i.e. the final state is reached. Ticking this box allows the creation of custom undo gestures to return to the previous state"
+            matTooltipShowDelay="500"
+            >Disable area on end</mat-checkbox>
     </div>
 </div>
 <mat-error *ngIf="this.form.errors !== null">{{this.form.errors | errorText}}</mat-error>
