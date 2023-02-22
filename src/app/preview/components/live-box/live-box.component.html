@@ -1,5 +1,4 @@
-<div
-    style="position: relative; overflow: hidden;">
+<div *ngIf="image$ | async" style="position: relative; overflow: hidden;">
     <img [src]="image$ | async">
     <svg #canvas attr.width="{{(originalSize !== undefined ? originalSize.width : 0)}}"
         attr.height="{{(originalSize !== undefined ? originalSize.height : 0)}}" class="canvas-box">
@@ -68,4 +67,7 @@
             </div>
         </mat-grid-tile>
     </mat-grid-list>
+</div>
+<div *ngIf="!(image$ | async)" class="t-education" style="display: flex; align-items: center; justify-content: center;">
+    <span>No spritesheet selected</span>
 </div>

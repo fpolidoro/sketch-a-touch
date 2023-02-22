@@ -29,6 +29,9 @@
             <button mat-icon-button (click)="openGuide$.next()">
                 <mat-icon>help_outline</mat-icon>
             </button>
+            <button mat-mini-fab color="primary" aria-label="Generate code" [matTooltip]="(areas.length === 0 || settings.invalid || settings.pending) ? 'Add a sprite sheet and some interactive areas before generating code': 'Generate code'" [disabled]="areas.length === 0 || settings.invalid || settings.pending">
+                <mat-icon>data_object</mat-icon>
+            </button>
         </mat-toolbar>
           
         <mat-selection-list [multiple]="false" formArrayName="areas">
@@ -64,7 +67,7 @@
                   </mat-list-option>
             </ng-container>
             <mat-list-item *ngIf="!currentFile">
-                <span style="font-size: 12px; color: #666; width: 100%; text-align: center">No spritesheet selected, add one before drawing interactive areas</span>
+                <span class="t-education">No spritesheet selected, add one before drawing interactive areas</span>
             </mat-list-item>
         </mat-selection-list>
     </div>
