@@ -5,7 +5,7 @@ import { IArea, ITile } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
-import { bufferToggle, debounceTime, filter, map, Observable, Subscription, switchMap, take, tap, withLatestFrom } from 'rxjs';
+import { bufferToggle, debounceTime, filter, map, merge, Observable, startWith, Subscription, switchMap, take, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'live-box',
@@ -36,8 +36,10 @@ export class LiveBoxComponent implements OnInit {
   ngOnInit(): void {
     this._subscription = this._fileService.viewportChanged$.pipe(
       withLatestFrom(this._fileService.fileUploaded$),
+      withLatestFrom(this._fileService.selectedInteractiveAreaChanged$.pipe(startWith(NaN))),
       filter(([viewport, file]) => file !== null),
-    ).subscribe(([viewport, file]) => {
+    ).subscribe(([[viewport, file], selectedAreaIndex]) => {
+      console.log(`viepowrt changed`)
       this.originalSize = {
         width: file.width,
         height: file.height
@@ -61,7 +63,31 @@ export class LiveBoxComponent implements OnInit {
           })
         }
       }
-      console.log(this.gridIndexes)
+
+      //since the viewport (thus grid tiles) changed, it is necessary to recompute to which tile each area belong so that the frames are highlighted correctly
+      this.areas.forEach(a => {
+        switch(a.type){
+          case 'circle':
+            a = Object.assign(a, {
+              pos: {
+                c: Math.floor(a.x/(file.width/(+viewport.cols > 0 ? +viewport.cols : 1))),
+                r: Math.floor(a.y/(file.height/(+viewport.rows > 0 ? +viewport.rows : 1)))
+              }
+            })
+            console.log(`${file!.height}/${viewport.rows}/${a.y}`)
+            break
+          case 'rectangle':
+            a = Object.assign(a, {
+              pos: {
+                c: Math.floor(a.x/(file.width/(+viewport.cols > 0 ? +viewport.cols : 1))),
+                r: Math.floor(a.y/(file.height/(+viewport.rows > 0 ? +viewport.rows : 1)))
+              }
+            })
+        }
+      })
+      //now recompute the tiles that must be highlighted as frames
+      this._findFrames()
+      // console.log(this.gridIndexes)
     })
     this._subscription.add(this._fileService.interactiveAreaAnnounced$.subscribe((area: IArea) => {
       this.areas.push(area)
@@ -99,42 +125,12 @@ export class LiveBoxComponent implements OnInit {
       switchMap((array: FormArray) => {
         this.formArray = array
 
-        return this.formArray.statusChanges.pipe(
-          withLatestFrom(this._fileService.selectedInteractiveAreaChanged$)
-        )
+        return merge(
+            this.formArray.statusChanges,
+            this._fileService.viewportChanged$
+          ).pipe(withLatestFrom(this._fileService.selectedInteractiveAreaChanged$))
       })
-    ).subscribe(() => {
-      if(this.selectedAreaIndex !== NaN){
-        let control = this.formArray?.controls[this.selectedAreaIndex] as FormGroup
-        if(control){
-          let from = control.controls['from'].value
-          let to = control.controls['to'].value
-          let direction = control.controls['direction'].value
-
-          this.gridIndexes.forEach(gi => {  //for each frame of the grid...
-            if(direction === undefined || direction === null){//...if the direction is defined...
-              gi.is_frame = false
-            }else{
-              if(direction.label === 'Column'){ //...and it is a column (i.e. vertical direction)...
-                if(this.areas[this.selectedAreaIndex].pos.c === gi.c){  //...and the current frame is on the column which the selected interactive area belongs to...
-                  gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.r && +to <= gi.r) || (+from <= +to && +from <= gi.r && +to >= gi.r))
-                  //set the frame as "belongs to animation" if its index is part of the range of rows identified by the from-to fields
-                  //console.log(`f: ${+from} ${+from <= +to ? '<=' : '>'} t: ${+to}, tile.r: ${gi.r}\nf>=r && t<=r: ${+from > +to && +from <= +to && +from >= gi.r && +to <= gi.r}\nf<=r && t>=r: ${+from <= +to && +from <= gi.r && +to >= gi.r}\n=    ${gi.is_frame}`)
-                }else{
-                  gi.is_frame = false
-                }
-              }else if(direction.label === 'Row'){
-                if(this.areas[this.selectedAreaIndex].pos.r === gi.r){
-                  gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.c && +to <= gi.c) || (+from <= +to && +from <= gi.c && +to >= gi.c))
-                }else{
-                  gi.is_frame = false
-                }
-              }
-            }
-          })
-        }
-      }
-    })
+    ).subscribe(() => this._findFrames())
   }
 
   ngOnDestroy(): void {
@@ -143,6 +139,39 @@ export class LiveBoxComponent implements OnInit {
 
   selectArea(index: number){
     this._fileService.selectInteractiveArea(index)
+  }
+
+  private _findFrames(): void {
+    if(this.selectedAreaIndex !== NaN){
+      let control = this.formArray?.controls[this.selectedAreaIndex] as FormGroup
+      if(control){
+        let from = control.controls['from'].value
+        let to = control.controls['to'].value
+        let direction = control.controls['direction'].value
+
+        this.gridIndexes.forEach(gi => {  //for each frame of the grid...
+          if(direction === undefined || direction === null){//...if the direction is defined...
+            gi.is_frame = false
+          }else{
+            if(direction.label === 'Column'){ //...and it is a column (i.e. vertical direction)...
+              if(this.areas[this.selectedAreaIndex].pos.c === gi.c){  //...and the current frame is on the column which the selected interactive area belongs to...
+                gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.r && +to <= gi.r) || (+from <= +to && +from <= gi.r && +to >= gi.r))
+                //set the frame as "belongs to animation" if its index is part of the range of rows identified by the from-to fields
+                console.log(`[${gi.c},${gi.r}] f: ${+from} ${+from <= +to ? '<=' : '>'} t: ${+to}, tile.r: ${gi.r}\nf>=r && t<=r: ${+from > +to && +from <= +to && +from >= gi.r && +to <= gi.r}\nf<=r && t>=r: ${+from <= +to && +from <= gi.r && +to >= gi.r}\n=    ${gi.is_frame}`)
+              }else{
+                gi.is_frame = false
+              }
+            }else if(direction.label === 'Row'){
+              if(this.areas[this.selectedAreaIndex].pos.r === gi.r){
+                gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.c && +to <= gi.c) || (+from <= +to && +from <= gi.c && +to >= gi.c))
+              }else{
+                gi.is_frame = false
+              }
+            }
+          }
+        })
+      }
+    }
   }
 }
 
