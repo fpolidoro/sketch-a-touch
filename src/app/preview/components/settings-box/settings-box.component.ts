@@ -37,9 +37,11 @@ export class SettingsBoxComponent implements OnInit {
   doneDrawing$: Subject<[Event, 'ok'|'reset'|'cancel']> = new Subject<[Event, 'ok'|'reset'|'cancel']>()
   deleteItem$: Subject<void> = new Subject<void>()
   openGuide$: Subject<void> = new Subject<void>()
+  toggleDrawer$: Subject<void> = new Subject<void>()
 
   action$ = this._fileService.interactiveAreaActionChanged$.pipe(startWith(null))
 
+  private _drawerStatus: boolean = false
   private _subscriptions?: Subscription[]
   private _areasForm: FormArray = this.settings.controls['areas'] as FormArray
 
@@ -140,7 +142,16 @@ export class SettingsBoxComponent implements OnInit {
       ).subscribe(),
       this.openGuide$.pipe(
         exhaustMap(() => this._dialog.open(GuideDialogComponent).afterClosed())
-      ).subscribe()
+      ).subscribe(),
+      this.toggleDrawer$.pipe(
+        debounceTime(100),
+        switchMap(() => {
+          this._fileService.toggleCodeDrawer(!this._drawerStatus)
+          return this._fileService.drawerStatusChanged$.pipe(
+            filter((status: boolean) => status !== this._drawerStatus)
+          )
+        })
+      ).subscribe((updatedStatus: boolean) => this._drawerStatus = updatedStatus)
     ]
 
     this._fileService.shareFormArray(this._areasForm) //share areasForm with live-box, so that it can draw the right patter on the SVGs

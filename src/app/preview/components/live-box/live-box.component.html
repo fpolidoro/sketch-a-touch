@@ -1,4 +1,4 @@
-<div *ngIf="image$ | async" style="position: relative; overflow: hidden;">
+<div *ngIf="image$ | async" style="position: relative; overflow-x: hidden; overflow-y: auto;">
     <img [src]="image$ | async">
     <svg #canvas attr.width="{{(originalSize !== undefined ? originalSize.width : 0)}}"
         attr.height="{{(originalSize !== undefined ? originalSize.height : 0)}}" class="canvas-box">

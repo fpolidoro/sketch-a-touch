@@ -29,42 +29,43 @@
             <button mat-icon-button (click)="openGuide$.next()">
                 <mat-icon>help_outline</mat-icon>
             </button>
-            <button mat-mini-fab color="primary" aria-label="Generate code" [matTooltip]="(areas.length === 0 || settings.invalid || settings.pending) ? 'Add a sprite sheet and some interactive areas before generating code': 'Generate code'" [disabled]="areas.length === 0 || settings.invalid || settings.pending">
+            <button mat-mini-fab color="primary" aria-label="Generate code"
+                (click)="toggleDrawer$.next()"
+                [matTooltip]="(areas.length === 0 || settings.invalid || settings.pending) ? 'Add a sprite sheet and some interactive areas before generating code': 'Generate code'" [disabled]="areas.length === 0 || settings.invalid || settings.pending">
                 <mat-icon>data_object</mat-icon>
             </button>
         </mat-toolbar>
-          
         <mat-selection-list [multiple]="false" formArrayName="areas">
             <ng-container *ngIf="currentFile">
                 <mat-list-option *ngFor="let area of areas; let i = index" [selected]="!showShapes && i === selectedAreaIndex" (click)="selectArea(i)">
                     <input-item flex="column" [area]="area"></input-item>
-                  </mat-list-option>
-                  <mat-list-option #newInteractiveArea class="mat-list-option mat-list-item item-button"
+                </mat-list-option>
+                <mat-list-option #newInteractiveArea class="mat-list-option mat-list-item item-button"
                       [disableRipple]="newInteractiveArea.selected" (click)="addInteractiveArea$.next()" [selected]="showShapes">
-                      <ng-container *ngIf="!drawing">
-                          <ng-container *ngIf="!showShapes">
-                              <mat-icon>add</mat-icon>
-                              Add interactive area
-                          </ng-container>
-                          <div *ngIf="showShapes">
-                              <span>Select the shape for the interactive area</span>
-                              <div flex gap="16">
-                                  <button mat-stroked-button (click)="selectAreaType$.next([$event, 'circle'])">Circle</button>
-                                  <button mat-stroked-button (click)="selectAreaType$.next([$event, 'rectangle'])">Rect</button>
-                              </div>
-                          </div>
-                      </ng-container>
-                      <ng-container *ngIf="drawing">
-                          <div>
-                              <span>Draw the interactive area over the image</span>
-                              <div flex gap="16">
-                                  <button mat-stroked-button (click)="doneDrawing$.next([$event, 'cancel'])">Cancel</button>
-                                  <button mat-stroked-button (click)="doneDrawing$.next([$event, 'reset'])">Reset</button>
-                                  <button mat-flat-button color="primary" (click)="doneDrawing$.next([$event, 'ok'])">Confirm</button>
-                              </div>
-                          </div>
-                      </ng-container>
-                  </mat-list-option>
+                    <ng-container *ngIf="!drawing">
+                        <ng-container *ngIf="!showShapes">
+                            <mat-icon>add</mat-icon>
+                            Add interactive area
+                        </ng-container>
+                        <div *ngIf="showShapes">
+                            <span>Select the shape for the interactive area</span>
+                            <div flex gap="16">
+                                <button mat-stroked-button (click)="selectAreaType$.next([$event, 'circle'])">Circle</button>
+                                <button mat-stroked-button (click)="selectAreaType$.next([$event, 'rectangle'])">Rect</button>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngIf="drawing">
+                        <div>
+                            <span>Draw the interactive area over the image</span>
+                            <div flex gap="16">
+                                <button mat-stroked-button (click)="doneDrawing$.next([$event, 'cancel'])">Cancel</button>
+                                <button mat-stroked-button (click)="doneDrawing$.next([$event, 'reset'])">Reset</button>
+                                <button mat-flat-button color="primary" (click)="doneDrawing$.next([$event, 'ok'])">Confirm</button>
+                            </div>
+                        </div>
+                    </ng-container>
+                </mat-list-option>
             </ng-container>
             <mat-list-item *ngIf="!currentFile">
                 <span class="t-education">No spritesheet selected, add one before drawing interactive areas</span>

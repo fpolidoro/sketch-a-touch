@@ -1,4 +1,16 @@
-<div class="content">
-  <settings-box class="box bordered"></settings-box>
+<!-- <div class="content">
+  <mat-drawer-container class="example-container" autosize>
+    <mat-drawer #drawer class="example-sidenav" mode="side">
+      <code-box class="box bordered"></code-box>
+    </mat-drawer>
+      <settings-box class="box bordered"></settings-box>
   <live-box class="box bordered"></live-box>
-</div>
+  </mat-drawer-container>
+</div> -->
+<mat-drawer-container class="drawer-container" autosize>
+  <mat-drawer #drawer class="example-sidenav" mode="over" [opened]="openDrawer$ | async" position="end" style="width: 50%;">
+    <code-box class="box bordered"></code-box>
+  </mat-drawer>
+  <settings-box class="box bordered half"></settings-box>
+  <live-box class="box bordered half"></live-box>
+</mat-drawer-container>

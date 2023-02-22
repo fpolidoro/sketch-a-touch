@@ -19,6 +19,8 @@ export class FileService {
   private _interactiveAreaSelectSource: ReplaySubject<number> = new ReplaySubject<number>(1)
   private _deleteInteractiveAreaSource: ReplaySubject<number> = new ReplaySubject<number>(1)
   private _formArraySource: ReplaySubject<FormArray> = new ReplaySubject<FormArray>(1)
+  private _toggleCodeDrawerSource: ReplaySubject<boolean> = new ReplaySubject<boolean>(1)
+  private _drawerStatusSource: ReplaySubject<boolean> = new ReplaySubject<boolean>(1)
 
   /** Notifies the selection of a file
    * @param base64file The image to announce, encoded with base64
@@ -103,4 +105,16 @@ export class FileService {
    * all the {@link InputItemComponent} corresponding to interactive areas drawn on {@link LiveBoxComponent}
    */
   formArray$ = this._formArraySource.asObservable()
+
+  toggleCodeDrawer(open: boolean): void {
+    this._toggleCodeDrawerSource.next(open)
+  }
+
+  codeDrawerOpened$ = this._toggleCodeDrawerSource.asObservable()
+
+  changeDrawerStatus(opened: boolean): void {
+    this._drawerStatusSource.next(opened)
+  }
+
+  drawerStatusChanged$ = this._drawerStatusSource.asObservable()
 }

@@ -11,6 +11,7 @@ import { CastShapePipe } from './pipes/cast-shape.pipe';
 import { PipesModule } from '@shared/pipes/pipes.module';
 import { ErrorTextPipe } from './pipes/error-text.pipe';
 import { GuideDialogComponent } from './components/guide-dialog/guide-dialog.component';
+import { CodeBoxComponent } from './components/code-box/code-box.component';
 
 @NgModule({
   declarations: [
@@ -21,6 +22,7 @@ import { GuideDialogComponent } from './components/guide-dialog/guide-dialog.com
     CastShapePipe,
     ErrorTextPipe,
     GuideDialogComponent,
+    CodeBoxComponent,
   ],
   imports: [
     CommonModule,
@@ -32,6 +34,7 @@ import { GuideDialogComponent } from './components/guide-dialog/guide-dialog.com
   exports: [
     LiveBoxComponent,
     SettingsBoxComponent,
+    CodeBoxComponent,
     CastShapePipe,
     ErrorTextPipe,
   ]
