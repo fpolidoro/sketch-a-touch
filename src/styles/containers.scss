@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 @mixin box {
     position: absolute;
     top: 0;
@@ -30,23 +32,35 @@
         @include box;
         pointer-events: none;
 
-        & .mat-grid-tile:first-of-type {
-            border: 2px solid black;
-            box-sizing: border-box;
+        & .mat-grid-tile{
+        
+            &:first-of-type {
+                border: 2px solid black;
+                box-sizing: border-box;
 
-            &::after {
-                position: absolute;
-                bottom: -2px;
-                right: -20px;
-                width: 20px;
-                height: 64px;
-                background-color: black;
-                content: "Viewport";
-                border-top-right-radius: 4px;
-                border-bottom-right-radius: 4px;
-                color: white;
-                text-align: center;
-                writing-mode: vertical-rl;
+                &.frame {
+                    border-width: 2px;
+                }
+
+                &::after {
+                    position: absolute;
+                    bottom: -2px;
+                    right: -20px;
+                    width: 20px;
+                    height: 64px;
+                    background-color: black;
+                    content: "Viewport";
+                    border-top-right-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                    color: white;
+                    text-align: center;
+                    writing-mode: vertical-rl;
+                }
+            }
+
+            &.frame {
+                border: 1px solid mat.get-color-from-palette($q-generator-primary);
+                box-sizing: border-box;
             }
         }
 
@@ -56,6 +70,8 @@
             height: 32px;
 
             & .label {
+                display: flex;
+                align-items: center;
                 height: 100%;
                 width: 80px;
                 background-color: transparent;
@@ -64,9 +80,13 @@
                 padding-top: 4px;
                 color: rgba(255,255,255,0.65);
 
-                & > span.selected {
-                    font-weight: 500;
-                    color: white;
+                & > span{
+                    line-height: 24px;
+
+                    &.selected {
+                        font-weight: 500;
+                        color: white;
+                    }
                 }
             }
         }

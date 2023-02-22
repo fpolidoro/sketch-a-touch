@@ -47,6 +47,7 @@ export class FileService {
    */
   announceInteractiveArea(area: IArea): void {
     this._interactiveAreaSource.next(area)
+    console.log(area)
   }
 
   /** Observes the changes of the interactive area drawn on the sprite sheet */

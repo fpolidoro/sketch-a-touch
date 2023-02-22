@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { FormArray } from '@angular/forms';
+import { FormArray, FormGroup } from '@angular/forms';
 import { IImageFile, ISize } from '@preview/interfaces/files';
 import { IArea, ITile } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
-import { bufferToggle, filter, map, Observable, Subscription, take, tap, withLatestFrom } from 'rxjs';
+import { bufferToggle, debounceTime, filter, map, Observable, Subscription, switchMap, take, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'live-box',
@@ -27,7 +27,7 @@ export class LiveBoxComponent implements OnInit {
   drawBoxPointerEvents: 'none'|'initial' = 'none'
 
   formArray?: FormArray
-  gridIndexes: ITile[] = []
+  gridIndexes: ITileAsFrame[] = []
 
   private _subscription?: Subscription
 
@@ -56,7 +56,8 @@ export class LiveBoxComponent implements OnInit {
         for(let j=0; j<+viewport.cols; j++){
           this.gridIndexes.push({
             c: j,
-            r: i
+            r: i,
+            is_frame: false
           })
         }
       }
@@ -93,7 +94,47 @@ export class LiveBoxComponent implements OnInit {
       })
     ).subscribe())
 
-    this._fileService.formArray$.pipe(take(1)).subscribe((array: FormArray) => this.formArray = array)
+    this._fileService.formArray$.pipe(
+      take(1),
+      switchMap((array: FormArray) => {
+        this.formArray = array
+
+        return this.formArray.statusChanges.pipe(
+          withLatestFrom(this._fileService.selectedInteractiveAreaChanged$)
+        )
+      })
+    ).subscribe(() => {
+      if(this.selectedAreaIndex !== NaN){
+        let control = this.formArray?.controls[this.selectedAreaIndex] as FormGroup
+        if(control){
+          let from = control.controls['from'].value
+          let to = control.controls['to'].value
+          let direction = control.controls['direction'].value
+
+          this.gridIndexes.forEach(gi => {  //for each frame of the grid...
+            if(direction === undefined || direction === null){//...if the direction is defined...
+              gi.is_frame = false
+            }else{
+              if(direction.label === 'Column'){ //...and it is a column (i.e. vertical direction)...
+                if(this.areas[this.selectedAreaIndex].pos.c === gi.c){  //...and the current frame is on the column which the selected interactive area belongs to...
+                  gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.r && +to <= gi.r) || (+from <= +to && +from <= gi.r && +to >= gi.r))
+                  //set the frame as "belongs to animation" if its index is part of the range of rows identified by the from-to fields
+                  //console.log(`f: ${+from} ${+from <= +to ? '<=' : '>'} t: ${+to}, tile.r: ${gi.r}\nf>=r && t<=r: ${+from > +to && +from <= +to && +from >= gi.r && +to <= gi.r}\nf<=r && t>=r: ${+from <= +to && +from <= gi.r && +to >= gi.r}\n=    ${gi.is_frame}`)
+                }else{
+                  gi.is_frame = false
+                }
+              }else if(direction.label === 'Row'){
+                if(this.areas[this.selectedAreaIndex].pos.r === gi.r){
+                  gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.c && +to <= gi.c) || (+from <= +to && +from <= gi.c && +to >= gi.c))
+                }else{
+                  gi.is_frame = false
+                }
+              }
+            }
+          })
+        }
+      }
+    })
   }
 
   ngOnDestroy(): void {
@@ -103,4 +144,8 @@ export class LiveBoxComponent implements OnInit {
   selectArea(index: number){
     this._fileService.selectInteractiveArea(index)
   }
+}
+
+interface ITileAsFrame extends ITile {
+  is_frame: boolean
 }

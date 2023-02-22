@@ -56,18 +56,16 @@
         </ng-container>
     </svg>
     <draw-box class="canvas-box" [style.pointer-events]="drawBoxPointerEvents" style.background-size="{{viewportSize.width}}px {{viewportSize.height}}px"></draw-box>
-    <div class="viewport" style.width="{{viewportSize.width}}px" style.height="{{viewportSize.height}}px"></div>
-    <mat-grid-list *ngIf="originalSize" [cols]="originalSize.width/viewportSize.width" rowHeight="{{viewportSize.height}}px" class="grid-box">
-        <mat-grid-tile *ngFor="let tile of gridIndexes">
+    <!-- The rowHeight introduces an offset of 1px for each row if the plain viewportSize is used, therefore the sum of such offsets must be removed from the count beforehand and a modified rowHeight must be passed as parameter -->
+    <mat-grid-list *ngIf="originalSize" [cols]="originalSize.width/viewportSize.width" rowHeight="{{(originalSize.height-(gridIndexes.length/(originalSize.width/viewportSize.width)))/(originalSize.height/viewportSize.height)}}px" class="grid-box">
+        <mat-grid-tile *ngFor="let tile of gridIndexes"
+        [class.frame]="tile.is_frame">
             <div class="label">
                 <span [class.selected]="!(selectedAreaIndex | isNan) && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Column' && areas[selectedAreaIndex].pos.c === tile.c">{{tile.c}}</span>
                 , 
                 <span [class.selected]="!(selectedAreaIndex | isNan) && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Row' && areas[selectedAreaIndex].pos.r === tile.r">{{tile.r}}</span>
+                <mat-icon *ngIf="tile.is_frame">videocam</mat-icon>
             </div>
         </mat-grid-tile>
     </mat-grid-list>
 </div>
-
-<!-- style.background-image="linear-gradient(to right, grey 1px, transparent 1px), linear-gradient(to bottom, grey 1px, transparent 1px)" -->
-
-<!-- style.width="{{viewportSize.width}}px" style.height="{{viewportSize.height}}px" -->
