@@ -93,7 +93,10 @@ export class LiveBoxComponent implements OnInit {
       this.areas.push(area)
       //console.log(area)
     }))
-    this._subscription.add(this._fileService.selectedInteractiveAreaChanged$.subscribe((index: number) => this.selectedAreaIndex = index))
+    this._subscription.add(this._fileService.selectedInteractiveAreaChanged$.subscribe((index: number) => {
+      this.selectedAreaIndex = index
+      this._findFrames()
+    }))
     this._subscription.add(this._fileService.interactiveAreaRequested$.pipe(  //observe when the drawing mode is active:
       //when an area is requested, it means the user wants to draw something
       tap(() => { //therefore allow the draw-box component to capture the pointer events
@@ -141,8 +144,9 @@ export class LiveBoxComponent implements OnInit {
     this._fileService.selectInteractiveArea(index)
   }
 
+  /** Recompute the tiles that must be highlighted as frames based on the currently selected interactive area identified by {@link selectedAreaIndex} */
   private _findFrames(): void {
-    if(this.selectedAreaIndex !== NaN){
+    if(this.selectedAreaIndex !== NaN && this.selectedAreaIndex >= 0){
       let control = this.formArray?.controls[this.selectedAreaIndex] as FormGroup
       if(control){
         let from = control.controls['from'].value
@@ -171,6 +175,8 @@ export class LiveBoxComponent implements OnInit {
           }
         })
       }
+    }else{
+      this.gridIndexes.forEach(gi => gi.is_frame = false)
     }
   }
 }

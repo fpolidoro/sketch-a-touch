@@ -61,9 +61,9 @@
         <mat-grid-tile *ngFor="let tile of gridIndexes"
         [class.frame]="tile.is_frame">
             <div class="label">
-                <span [class.selected]="!(selectedAreaIndex | isNan) && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Column' && areas[selectedAreaIndex].pos.c === tile.c">{{tile.c}}</span>
+                <span [class.selected]="!(selectedAreaIndex | isNan) && selectedAreaIndex >= 0 && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Column' && areas[selectedAreaIndex].pos.c === tile.c">{{tile.c}}</span>
                 , 
-                <span [class.selected]="!(selectedAreaIndex | isNan) && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Row' && areas[selectedAreaIndex].pos.r === tile.r">{{tile.r}}</span>
+                <span [class.selected]="!(selectedAreaIndex | isNan) && selectedAreaIndex >= 0 && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Row' && areas[selectedAreaIndex].pos.r === tile.r">{{tile.r}}</span>
                 <mat-icon *ngIf="tile.is_frame">videocam</mat-icon>
             </div>
         </mat-grid-tile>
