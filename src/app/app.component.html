@@ -8,7 +8,7 @@
   </mat-drawer-container>
 </div> -->
 <mat-drawer-container class="drawer-container" autosize>
-  <mat-drawer #drawer class="example-sidenav" mode="over" [opened]="openDrawer$ | async" position="end" style="width: 50%;">
+  <mat-drawer #drawer class="example-sidenav" mode="over" [opened]="openDrawer$ | async" (closedStart)="closeDrawer$.next()" position="end" style="width: 50%;">
     <code-box class="box bordered"></code-box>
   </mat-drawer>
   <settings-box class="box bordered half"></settings-box>

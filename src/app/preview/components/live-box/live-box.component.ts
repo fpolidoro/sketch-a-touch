@@ -74,7 +74,7 @@ export class LiveBoxComponent implements OnInit {
                 r: Math.floor(a.y/(file.height/(+viewport.rows > 0 ? +viewport.rows : 1)))
               }
             })
-            console.log(`${file!.height}/${viewport.rows}/${a.y}`)
+            //console.log(`${file!.height}/${viewport.rows}/${a.y}`)
             break
           case 'rectangle':
             a = Object.assign(a, {
@@ -161,7 +161,7 @@ export class LiveBoxComponent implements OnInit {
               if(this.areas[this.selectedAreaIndex].pos.c === gi.c){  //...and the current frame is on the column which the selected interactive area belongs to...
                 gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.r && +to <= gi.r) || (+from <= +to && +from <= gi.r && +to >= gi.r))
                 //set the frame as "belongs to animation" if its index is part of the range of rows identified by the from-to fields
-                console.log(`[${gi.c},${gi.r}] f: ${+from} ${+from <= +to ? '<=' : '>'} t: ${+to}, tile.r: ${gi.r}\nf>=r && t<=r: ${+from > +to && +from <= +to && +from >= gi.r && +to <= gi.r}\nf<=r && t>=r: ${+from <= +to && +from <= gi.r && +to >= gi.r}\n=    ${gi.is_frame}`)
+                //console.log(`[${gi.c},${gi.r}] f: ${+from} ${+from <= +to ? '<=' : '>'} t: ${+to}, tile.r: ${gi.r}\nf>=r && t<=r: ${+from > +to && +from <= +to && +from >= gi.r && +to <= gi.r}\nf<=r && t>=r: ${+from <= +to && +from <= gi.r && +to >= gi.r}\n=    ${gi.is_frame}`)
               }else{
                 gi.is_frame = false
               }

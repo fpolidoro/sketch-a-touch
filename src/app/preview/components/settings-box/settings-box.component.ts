@@ -146,6 +146,7 @@ export class SettingsBoxComponent implements OnInit {
       this.toggleDrawer$.pipe(
         debounceTime(100),
         switchMap(() => {
+          console.log(`Toggling drawer: curr=${this._drawerStatus}`)
           this._fileService.toggleCodeDrawer(!this._drawerStatus)
           return this._fileService.drawerStatusChanged$.pipe(
             filter((status: boolean) => status !== this._drawerStatus)
