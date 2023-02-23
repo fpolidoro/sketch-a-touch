@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import {ClipboardModule} from '@angular/cdk/clipboard';
 import { LiveBoxComponent } from './components/live-box/live-box.component';
 import { SettingsBoxComponent } from './components/settings-box/settings-box.component';
 import { MaterialModule } from '@shared/material/material.module';
@@ -12,6 +13,7 @@ import { PipesModule } from '@shared/pipes/pipes.module';
 import { ErrorTextPipe } from './pipes/error-text.pipe';
 import { GuideDialogComponent } from './components/guide-dialog/guide-dialog.component';
 import { CodeBoxComponent } from './components/code-box/code-box.component';
+import { SnippetBoxComponent } from './components/snippet-box/snippet-box.component';
 
 @NgModule({
   declarations: [
@@ -23,10 +25,12 @@ import { CodeBoxComponent } from './components/code-box/code-box.component';
     ErrorTextPipe,
     GuideDialogComponent,
     CodeBoxComponent,
+    SnippetBoxComponent,
   ],
   imports: [
     CommonModule,
     MaterialModule,
+    ClipboardModule,
     ReactiveFormsModule,
     DirectivesModule,
     PipesModule,

@@ -20,6 +20,8 @@ export class AppComponent implements OnInit {
   constructor(private _fileService: FileService){ }
 
   ngOnInit(): void {
+    this._fileService.toggleCodeDrawer(true)  //debug
+
     this.closeDrawer$.pipe(
       debounceTime(100),
       withLatestFrom(this._fileService.codeDrawerOpened$) //get the current status of the drawer (on template)

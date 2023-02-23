@@ -9,7 +9,7 @@
 </div> -->
 <mat-drawer-container class="drawer-container" autosize>
   <mat-drawer #drawer class="example-sidenav" mode="over" [opened]="openDrawer$ | async" (closedStart)="closeDrawer$.next()" position="end" style="width: 50%;">
-    <code-box class="box bordered"></code-box>
+    <code-box style="display: flex; flex-direction: column; padding: 0 8px 16px 8px"></code-box>
   </mat-drawer>
   <settings-box class="box bordered half"></settings-box>
   <live-box class="box bordered half"></live-box>

@@ -24,6 +24,12 @@
         border: 1px solid $light-grey-d;
         border-radius: 2px;
     }
+
+    &.code {
+        background-color: mat.get-color-from-palette($q-generator-primary, 50);
+        font-family:  'Roboto Mono', monospace;
+        margin-bottom: 16px;
+    }
 }
 
 .canvas-box {
