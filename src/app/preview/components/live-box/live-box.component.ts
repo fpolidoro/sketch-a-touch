@@ -28,6 +28,8 @@ export class LiveBoxComponent implements OnInit {
 
   formArray?: FormArray
   gridIndexes: ITileAsFrame[] = []
+  /** Defines the icon to be displayed on frames, to indicate the direction of the animation */
+  arrow: string|undefined
 
   private _subscription?: Subscription
 
@@ -152,22 +154,26 @@ export class LiveBoxComponent implements OnInit {
         let from = control.controls['from'].value
         let to = control.controls['to'].value
         let direction = control.controls['direction'].value
+        this.arrow = undefined
 
         this.gridIndexes.forEach(gi => {  //for each frame of the grid...
           if(direction === undefined || direction === null){//...if the direction is defined...
-            gi.is_frame = false
+            this.arrow = undefined
+            gi.is_frame = false //direction not defined, so the tile can't be a frame
           }else{
             if(direction.label === 'Column'){ //...and it is a column (i.e. vertical direction)...
               if(this.areas[this.selectedAreaIndex].pos.c === gi.c){  //...and the current frame is on the column which the selected interactive area belongs to...
                 gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.r && +to <= gi.r) || (+from <= +to && +from <= gi.r && +to >= gi.r))
                 //set the frame as "belongs to animation" if its index is part of the range of rows identified by the from-to fields
                 //console.log(`[${gi.c},${gi.r}] f: ${+from} ${+from <= +to ? '<=' : '>'} t: ${+to}, tile.r: ${gi.r}\nf>=r && t<=r: ${+from > +to && +from <= +to && +from >= gi.r && +to <= gi.r}\nf<=r && t>=r: ${+from <= +to && +from <= gi.r && +to >= gi.r}\n=    ${gi.is_frame}`)
+                if(gi.is_frame) this.arrow = +from > +to ? "arrow_upward" : "arrow_downward"
               }else{
                 gi.is_frame = false
               }
             }else if(direction.label === 'Row'){
               if(this.areas[this.selectedAreaIndex].pos.r === gi.r){
                 gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.c && +to <= gi.c) || (+from <= +to && +from <= gi.c && +to >= gi.c))
+                if(gi.is_frame) this.arrow = +from > +to ? "arrow_back" : "arrow_forward"
               }else{
                 gi.is_frame = false
               }

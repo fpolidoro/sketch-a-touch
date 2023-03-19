@@ -63,7 +63,7 @@
                 <span [class.selected]="!(selectedAreaIndex | isNan) && selectedAreaIndex >= 0 && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Column' && areas[selectedAreaIndex].pos.c === tile.c">{{tile.c}}</span>
                 , 
                 <span [class.selected]="!(selectedAreaIndex | isNan) && selectedAreaIndex >= 0 && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Row' && areas[selectedAreaIndex].pos.r === tile.r">{{tile.r}}</span>
-                <mat-icon *ngIf="tile.is_frame">videocam</mat-icon>
+                <mat-icon *ngIf="tile.is_frame && arrow !== undefined">{{arrow}}</mat-icon>
             </div>
         </mat-grid-tile>
     </mat-grid-list>
