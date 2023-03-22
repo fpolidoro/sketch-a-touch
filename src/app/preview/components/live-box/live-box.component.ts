@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormGroup } from '@angular/forms';
 import { IImageFile, ISize } from '@preview/interfaces/files';
-import { IArea, ITile } from '@preview/interfaces/shapes';
+import { IArea, ICircle, IRect, ITile } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
@@ -23,6 +23,7 @@ export class LiveBoxComponent implements OnInit {
   )
 
   areas: IArea[] = []
+  selectedUndoArea?: IArea
   selectedAreaIndex: number = NaN
   drawBoxPointerEvents: 'none'|'initial' = 'none'
 
@@ -149,11 +150,14 @@ export class LiveBoxComponent implements OnInit {
   /** Recompute the tiles that must be highlighted as frames based on the currently selected interactive area identified by {@link selectedAreaIndex} */
   private _findFrames(): void {
     if(this.selectedAreaIndex !== NaN && this.selectedAreaIndex >= 0){
+      let area = this.areas[this.selectedAreaIndex]
       let control = this.formArray?.controls[this.selectedAreaIndex] as FormGroup
       if(control){
         let from = control.controls['from'].value
         let to = control.controls['to'].value
         let direction = control.controls['direction'].value
+        let hasUndo = control.controls['allowUndo'].value
+        let maxTileIndex = -1
         this.arrow = undefined
 
         this.gridIndexes.forEach(gi => {  //for each frame of the grid...
@@ -162,24 +166,80 @@ export class LiveBoxComponent implements OnInit {
             gi.is_frame = false //direction not defined, so the tile can't be a frame
           }else{
             if(direction.label === 'Column'){ //...and it is a column (i.e. vertical direction)...
-              if(this.areas[this.selectedAreaIndex].pos.c === gi.c){  //...and the current frame is on the column which the selected interactive area belongs to...
+              if(area.pos.c === gi.c){  //...and the current frame is on the column which the selected interactive area belongs to...
                 gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.r && +to <= gi.r) || (+from <= +to && +from <= gi.r && +to >= gi.r))
                 //set the frame as "belongs to animation" if its index is part of the range of rows identified by the from-to fields
                 //console.log(`[${gi.c},${gi.r}] f: ${+from} ${+from <= +to ? '<=' : '>'} t: ${+to}, tile.r: ${gi.r}\nf>=r && t<=r: ${+from > +to && +from <= +to && +from >= gi.r && +to <= gi.r}\nf<=r && t>=r: ${+from <= +to && +from <= gi.r && +to >= gi.r}\n=    ${gi.is_frame}`)
-                if(gi.is_frame) this.arrow = +from > +to ? "arrow_upward" : "arrow_downward"
+                if(gi.is_frame){
+                  this.arrow = +from > +to ? "arrow_upward" : "arrow_downward"
+                  maxTileIndex = Math.max(maxTileIndex, gi.r)
+                }
               }else{
                 gi.is_frame = false
               }
             }else if(direction.label === 'Row'){
-              if(this.areas[this.selectedAreaIndex].pos.r === gi.r){
+              if(area.pos.r === gi.r){
                 gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.c && +to <= gi.c) || (+from <= +to && +from <= gi.c && +to >= gi.c))
-                if(gi.is_frame) this.arrow = +from > +to ? "arrow_back" : "arrow_forward"
+                if(gi.is_frame){
+                  this.arrow = +from > +to ? "arrow_back" : "arrow_forward"
+                  maxTileIndex = Math.max(maxTileIndex, gi.c)
+                }
               }else{
                 gi.is_frame = false
               }
             }
           }
         })
+
+        //create undo area
+        let pos: ITile
+        let x: number
+        let y: number
+        let w: number = 0
+        let h: number = 0
+        
+        
+        if(direction?.label === 'Row'){
+          pos = {
+            c: maxTileIndex,
+            r: area.pos.r
+          }
+          x = (to-from)*this.viewportSize.width + area.x
+          y = area.y
+          w = ((area as IRect).w ?? 0) + (to-from)*this.viewportSize.width
+          h = (area as IRect).h ?? 0
+        }else if(direction?.label === 'Column'){
+          pos = {
+            c: area.pos.c,
+            r: maxTileIndex
+          }
+          x = area.x
+          y = (to-from)*this.viewportSize.height + area.y
+          w = (area as IRect).w ?? 0
+          h = ((area as IRect).h ?? 0) + (to-from)*this.viewportSize.height
+        }
+
+
+        this.selectedUndoArea = hasUndo && direction && (direction.label=== 'Row' || direction.label=== 'Column') ? {
+          pos: pos!,
+          type: area.type,
+          x: x!,
+          y: y!
+        } : undefined
+
+        if(this.selectedUndoArea !== undefined){
+          if(area.type === 'circle'){
+            this.selectedUndoArea = Object.assign((this.selectedUndoArea as IArea), {
+              r: (area as ICircle).r
+            })
+          }else if(area.type === 'rectangle'){
+            this.selectedUndoArea = Object.assign((this.selectedUndoArea as IArea), {
+              w: w,
+              h: h
+            })
+            console.log(`w: ${(this.selectedUndoArea as IRect).w}, x: ${(this.selectedUndoArea as IRect).x}`)
+          }
+        }
       }
     }else{
       this.gridIndexes.forEach(gi => gi.is_frame = false)

@@ -2,6 +2,7 @@ export interface IArea {
     type: 'circle'|'rectangle',
     x: number,
     y: number,
+    /** The tile this area (its center) belongs to */
     pos: ITile
 }
 

@@ -53,6 +53,26 @@
                     (click)="selectArea(i)" />
             </ng-container>
         </ng-container>
+        <ng-container *ngIf="selectedUndoArea">
+            <ng-container [ngSwitch]="selectedUndoArea.type">
+                <circle *ngSwitchCase="'circle'"
+                    attr.cx="{{selectedUndoArea.x}}"
+                    attr.cy="{{selectedUndoArea.y}}"
+                    attr.r="{{(selectedUndoArea | castShape).r}}"
+                    fill="#4db6ac"
+                    opacity="0.3" stroke="#00857c" attr.stroke-width="{{(selectedAreaIndex | isNan) ? 0 : 1}}"
+                    mask="url(#myMask)"
+                    />
+                <rect *ngSwitchCase="'rectangle'"
+                    attr.x="{{(selectedUndoArea | castShape).w-(selectedUndoArea | castShape).x < 0 ? (selectedUndoArea | castShape).w : (selectedUndoArea | castShape).x}}"
+                    attr.y="{{(selectedUndoArea | castShape).h-(selectedUndoArea | castShape).y < 0 ? (selectedUndoArea | castShape).h : (selectedUndoArea | castShape).y}}"
+                    attr.width="{{(selectedUndoArea | castShape).w-(selectedUndoArea | castShape).x < 0 ? (selectedUndoArea | castShape).x-(selectedUndoArea | castShape).w : (selectedUndoArea | castShape).w-(selectedUndoArea | castShape).x}}"
+                    attr.height="{{(selectedUndoArea | castShape).h - (selectedUndoArea | castShape).y < 0 ? (selectedUndoArea | castShape).y - (selectedUndoArea | castShape).h : (selectedUndoArea | castShape).h - (selectedUndoArea | castShape).y}}"
+                    fill="#4db6ac"
+                    opacity="0.3" stroke="#00857c" attr.stroke-width="{{(selectedAreaIndex | isNan) ? 0 : 1}}"
+                    />
+            </ng-container>
+        </ng-container>
     </svg>
     <draw-box class="canvas-box" [style.pointer-events]="drawBoxPointerEvents" style.background-size="{{viewportSize.width}}px {{viewportSize.height}}px"></draw-box>
     <!-- The rowHeight introduces an offset of 1px for each row if the plain viewportSize is used, therefore the sum of such offsets must be removed from the count beforehand and a modified rowHeight must be passed as parameter -->
