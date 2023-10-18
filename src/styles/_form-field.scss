@@ -1,5 +1,6 @@
 input-item {
     & .form {
+        align-items: start;
         gap: 16px;
 
         & .type {
@@ -14,6 +15,9 @@ input-item {
 
     & .select-icon-box .mat-form-field-infix {
         max-width: 100px;
+        padding: 12px 0;
+        max-height: 26px;
+        height: 26px;
     }
 
     & .select-box .mat-form-field-infix {

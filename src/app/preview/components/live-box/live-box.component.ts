@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { FormArray } from '@angular/forms';
+import { FormArray, FormGroup } from '@angular/forms';
 import { IImageFile, ISize } from '@preview/interfaces/files';
-import { IArea } from '@preview/interfaces/shapes';
+import { IArea, ICircle, IRect, ITile } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
-import { bufferToggle, filter, map, Observable, Subscription, take, tap, withLatestFrom } from 'rxjs';
+import { bufferToggle, debounceTime, filter, map, merge, Observable, startWith, Subscription, switchMap, take, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'live-box',
@@ -13,6 +13,7 @@ import { bufferToggle, filter, map, Observable, Subscription, take, tap, withLat
   styleUrls: ['./live-box.component.scss']
 })
 export class LiveBoxComponent implements OnInit {
+  originalSize?: ISize
   viewportSize: ISize = {
     width: 1,
     height: 1
@@ -22,10 +23,14 @@ export class LiveBoxComponent implements OnInit {
   )
 
   areas: IArea[] = []
+  selectedUndoArea?: IArea
   selectedAreaIndex: number = NaN
   drawBoxPointerEvents: 'none'|'initial' = 'none'
 
   formArray?: FormArray
+  gridIndexes: ITileAsFrame[] = []
+  /** Defines the icon to be displayed on frames, to indicate the direction of the animation */
+  arrow: string|undefined
 
   private _subscription?: Subscription
 
@@ -34,19 +39,67 @@ export class LiveBoxComponent implements OnInit {
   ngOnInit(): void {
     this._subscription = this._fileService.viewportChanged$.pipe(
       withLatestFrom(this._fileService.fileUploaded$),
+      withLatestFrom(this._fileService.selectedInteractiveAreaChanged$.pipe(startWith(NaN))),
       filter(([viewport, file]) => file !== null),
-    ).subscribe(([viewport, file]) => {
+    ).subscribe(([[viewport, file], selectedAreaIndex]) => {
+      console.log(`viepowrt changed`)
+      this.originalSize = {
+        width: file.width,
+        height: file.height
+      }
       this.viewportSize = {
         width: file.width/(+viewport.cols > 0 ? +viewport.cols : 1),
         height: file.height/(+viewport.rows > 0 ? +viewport.rows : 1)
       }
-      //console.log(this.viewportSize)
+      this.gridIndexes.splice(0, this.gridIndexes.length)
+      
+      //generate the indexes for the tiles of the grid that help the user numbering the frames
+      for(let i=0; i<+viewport.cols*+viewport.rows; i++){
+        this.gridIndexes.push()
+      }
+      for(let i=0; i<+viewport.rows; i++){
+        for(let j=0; j<+viewport.cols; j++){
+          this.gridIndexes.push({
+            c: j,
+            r: i,
+            is_frame: false
+          })
+        }
+      }
+
+      //since the viewport (thus grid tiles) changed, it is necessary to recompute to which tile each area belong so that the frames are highlighted correctly
+      this.areas.forEach(a => {
+        switch(a.type){
+          case 'circle':
+            a = Object.assign(a, {
+              pos: {
+                c: Math.floor(a.x/(file.width/(+viewport.cols > 0 ? +viewport.cols : 1))),
+                r: Math.floor(a.y/(file.height/(+viewport.rows > 0 ? +viewport.rows : 1)))
+              }
+            })
+            //console.log(`${file!.height}/${viewport.rows}/${a.y}`)
+            break
+          case 'rectangle':
+            a = Object.assign(a, {
+              pos: {
+                c: Math.floor(a.x/(file.width/(+viewport.cols > 0 ? +viewport.cols : 1))),
+                r: Math.floor(a.y/(file.height/(+viewport.rows > 0 ? +viewport.rows : 1)))
+              }
+            })
+        }
+      })
+      //now recompute the tiles that must be highlighted as frames
+      this._findFrames()
+      // console.log(this.gridIndexes)
     })
     this._subscription.add(this._fileService.interactiveAreaAnnounced$.subscribe((area: IArea) => {
       this.areas.push(area)
       //console.log(area)
     }))
-    this._subscription.add(this._fileService.selectedInteractiveAreaChanged$.subscribe((index: number) => this.selectedAreaIndex = index))
+    this._subscription.add(this._fileService.selectedInteractiveAreaChanged$.subscribe((index: number) => {
+      this.selectedAreaIndex = index
+      this._findFrames()
+    }))
     this._subscription.add(this._fileService.interactiveAreaRequested$.pipe(  //observe when the drawing mode is active:
       //when an area is requested, it means the user wants to draw something
       tap(() => { //therefore allow the draw-box component to capture the pointer events
@@ -73,7 +126,17 @@ export class LiveBoxComponent implements OnInit {
       })
     ).subscribe())
 
-    this._fileService.formArray$.pipe(take(1)).subscribe((array: FormArray) => this.formArray = array)
+    this._fileService.formArray$.pipe(
+      take(1),
+      switchMap((array: FormArray) => {
+        this.formArray = array
+
+        return merge(
+            this.formArray.statusChanges,
+            this._fileService.viewportChanged$
+          ).pipe(withLatestFrom(this._fileService.selectedInteractiveAreaChanged$))
+      })
+    ).subscribe(() => this._findFrames())
   }
 
   ngOnDestroy(): void {
@@ -83,4 +146,107 @@ export class LiveBoxComponent implements OnInit {
   selectArea(index: number){
     this._fileService.selectInteractiveArea(index)
   }
+
+  /** Recompute the tiles that must be highlighted as frames based on the currently selected interactive area identified by {@link selectedAreaIndex} */
+  private _findFrames(): void {
+    if(this.selectedAreaIndex !== NaN && this.selectedAreaIndex >= 0){
+      let area = this.areas[this.selectedAreaIndex]
+      let control = this.formArray?.controls[this.selectedAreaIndex] as FormGroup
+      if(control){
+        let from = control.controls['from'].value
+        let to = control.controls['to'].value
+        let direction = control.controls['direction'].value
+        let hasUndo = control.controls['allowUndo'].value
+        let maxTileIndex = -1
+        this.arrow = undefined
+
+        this.gridIndexes.forEach(gi => {  //for each frame of the grid...
+          if(direction === undefined || direction === null){//...if the direction is defined...
+            this.arrow = undefined
+            gi.is_frame = false //direction not defined, so the tile can't be a frame
+          }else{
+            if(direction.label === 'Column'){ //...and it is a column (i.e. vertical direction)...
+              if(area.pos.c === gi.c){  //...and the current frame is on the column which the selected interactive area belongs to...
+                gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.r && +to <= gi.r) || (+from <= +to && +from <= gi.r && +to >= gi.r))
+                //set the frame as "belongs to animation" if its index is part of the range of rows identified by the from-to fields
+                //console.log(`[${gi.c},${gi.r}] f: ${+from} ${+from <= +to ? '<=' : '>'} t: ${+to}, tile.r: ${gi.r}\nf>=r && t<=r: ${+from > +to && +from <= +to && +from >= gi.r && +to <= gi.r}\nf<=r && t>=r: ${+from <= +to && +from <= gi.r && +to >= gi.r}\n=    ${gi.is_frame}`)
+                if(gi.is_frame){
+                  this.arrow = +from > +to ? "arrow_upward" : "arrow_downward"
+                  maxTileIndex = Math.max(maxTileIndex, gi.r)
+                }
+              }else{
+                gi.is_frame = false
+              }
+            }else if(direction.label === 'Row'){
+              if(area.pos.r === gi.r){
+                gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.c && +to <= gi.c) || (+from <= +to && +from <= gi.c && +to >= gi.c))
+                if(gi.is_frame){
+                  this.arrow = +from > +to ? "arrow_back" : "arrow_forward"
+                  maxTileIndex = Math.max(maxTileIndex, gi.c)
+                }
+              }else{
+                gi.is_frame = false
+              }
+            }
+          }
+        })
+
+        //create undo area
+        let pos: ITile
+        let x: number
+        let y: number
+        let w: number = 0
+        let h: number = 0
+        
+        
+        if(direction?.label === 'Row'){
+          pos = {
+            c: maxTileIndex,
+            r: area.pos.r
+          }
+          x = (to-from)*this.viewportSize.width + area.x
+          y = area.y
+          w = ((area as IRect).w ?? 0) + (to-from)*this.viewportSize.width
+          h = (area as IRect).h ?? 0
+        }else if(direction?.label === 'Column'){
+          pos = {
+            c: area.pos.c,
+            r: maxTileIndex
+          }
+          x = area.x
+          y = (to-from)*this.viewportSize.height + area.y
+          w = (area as IRect).w ?? 0
+          h = ((area as IRect).h ?? 0) + (to-from)*this.viewportSize.height
+        }
+
+
+        this.selectedUndoArea = hasUndo && direction && (direction.label=== 'Row' || direction.label=== 'Column') ? {
+          pos: pos!,
+          type: area.type,
+          x: x!,
+          y: y!
+        } : undefined
+
+        if(this.selectedUndoArea !== undefined){
+          if(area.type === 'circle'){
+            this.selectedUndoArea = Object.assign((this.selectedUndoArea as IArea), {
+              r: (area as ICircle).r
+            })
+          }else if(area.type === 'rectangle'){
+            this.selectedUndoArea = Object.assign((this.selectedUndoArea as IArea), {
+              w: w,
+              h: h
+            })
+            console.log(`w: ${(this.selectedUndoArea as IRect).w}, x: ${(this.selectedUndoArea as IRect).x}`)
+          }
+        }
+      }
+    }else{
+      this.gridIndexes.forEach(gi => gi.is_frame = false)
+    }
+  }
+}
+
+interface ITileAsFrame extends ITile {
+  is_frame: boolean
 }

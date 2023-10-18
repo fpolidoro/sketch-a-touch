@@ -18,7 +18,7 @@ export class InputItemComponent implements OnInit, OnDestroy {
     from: new FormControl(),
     to: new FormControl(),
     direction: new FormControl(),
-    disableOnEnd: new FormControl(true)
+    allowUndo: new FormControl(true)
   })
 
   readonly areaType: IItem[] = [

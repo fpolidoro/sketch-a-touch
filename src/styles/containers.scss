@@ -1,19 +1,168 @@
+@use '@angular/material' as mat;
+
+@mixin box {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
 .box {
     display: flex;
     position: relative;
     margin: 2px;
     padding: 8px;
 
+    &.half {
+        flex-basis: calc(50% - 24px);
+        flex-shrink: 0;
+        flex-grow: 0;
+    }
+
     &.bordered {
         border: 1px solid $light-grey-d;
         border-radius: 2px;
     }
+
+    &.code {
+        background-color: mat.get-color-from-palette($q-generator-primary, 50);
+        font-family:  'Roboto Mono', monospace;
+        margin-bottom: 16px;
+    }
 }
 
 .canvas-box {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    @include box;
+    background-image:
+      linear-gradient(to right, grey 1px, transparent 1px),
+      linear-gradient(to bottom, grey 1px, transparent 1px);
+}
+
+.grid-box {
+    &.mat-grid-list {
+        @include box;
+        pointer-events: none;
+
+        & .mat-grid-tile{
+        
+            &:first-of-type {
+                border: 2px solid black;
+                box-sizing: border-box;
+
+                &.frame {
+                    border-width: 2px;
+                }
+
+                &::after {
+                    position: absolute;
+                    bottom: -2px;
+                    right: -20px;
+                    width: 20px;
+                    height: 64px;
+                    background-color: black;
+                    content: "Viewport";
+                    border-top-right-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                    color: white;
+                    text-align: center;
+                    writing-mode: vertical-rl;
+                }
+            }
+
+            &.frame {
+                border: 1px solid mat.get-color-from-palette($q-generator-accent);
+                box-sizing: border-box;
+            }
+        }
+
+        & .mat-grid-tile-content {
+            align-content: start;
+            justify-content: start;
+            height: 32px;
+
+            & .label {
+                display: flex;
+                align-items: center;
+                height: 100%;
+                width: 80px;
+                background-color: transparent;
+                background-image: radial-gradient(farthest-side at 10% 0%, rgba(0, 0, 0, 0.5019607843), transparent);
+                padding-left: 8px;
+                padding-top: 4px;
+                color: rgba(255,255,255,0.65);
+
+                & > span{
+                    line-height: 24px;
+
+                    &.selected {
+                        font-weight: 500;
+                        color: white;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.drawer-container {
+    height: 100%;
+
+    &.mat-drawer-container{
+        display: flex;
+    }
+    & .mat-drawer-content {
+        display: flex;
+        flex-basis: 100%;
+    }
+}
+
+.shape-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 56px;
+    width: 56px;
+    border: 1px solid #dcdcdc;
+    text-align: center;
+
+    & > div {
+        &:first-of-type {
+            font-size: 10px;
+            line-height: 12px;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        &:last-of-type {
+            font-size: 18px;
+            line-height: 24px;
+            padding-left: 4px;
+        }
+    }
+
+    &.circle {
+        border-radius: 50%;
+    }
+
+    & .superscript {
+        position: relative;
+
+        &.r::before{
+            content: "R";
+        }
+
+        &.c::before {
+            content: "C";
+        }
+
+        &::before {
+            position: absolute;
+            top: -8px;
+            bottom: 0;
+            left: -16px;
+            right: 0;
+            font-size: 10px;
+        }
+    }
 }

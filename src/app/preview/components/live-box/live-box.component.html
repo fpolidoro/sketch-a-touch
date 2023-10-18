@@ -1,7 +1,7 @@
-<div style.width="{{viewportSize.width}}px" style.height="{{viewportSize.height}}px" style="position: relative; overflow: hidden;">
+<div *ngIf="image$ | async" style="position: relative; overflow-x: hidden; overflow-y: auto;">
     <img [src]="image$ | async">
-    <svg #canvas attr.width="{{(viewportSize !== undefined ? viewportSize.width : 0)}}"
-        attr.height="{{(viewportSize !== undefined ? viewportSize.height : 0)}}" class="canvas-box">
+    <svg #canvas attr.width="{{(originalSize !== undefined ? originalSize.width : 0)}}"
+        attr.height="{{(originalSize !== undefined ? originalSize.height : 0)}}" class="canvas-box">
         <defs>
             <pattern id="invalid" patternUnits="userSpaceOnUse" width="20" height="80" patternTransform="scale(1) rotate(45)">
                 <rect x="0" y="0" width="100%" height="100%" fill="rgba(0, 0, 0, 0.15)"></rect>
@@ -53,6 +53,41 @@
                     (click)="selectArea(i)" />
             </ng-container>
         </ng-container>
+        <ng-container *ngIf="selectedUndoArea">
+            <ng-container [ngSwitch]="selectedUndoArea.type">
+                <circle *ngSwitchCase="'circle'"
+                    attr.cx="{{selectedUndoArea.x}}"
+                    attr.cy="{{selectedUndoArea.y}}"
+                    attr.r="{{(selectedUndoArea | castShape).r}}"
+                    fill="#4db6ac"
+                    opacity="0.3" stroke="#00857c" attr.stroke-width="{{(selectedAreaIndex | isNan) ? 0 : 1}}"
+                    mask="url(#myMask)"
+                    />
+                <rect *ngSwitchCase="'rectangle'"
+                    attr.x="{{(selectedUndoArea | castShape).w-(selectedUndoArea | castShape).x < 0 ? (selectedUndoArea | castShape).w : (selectedUndoArea | castShape).x}}"
+                    attr.y="{{(selectedUndoArea | castShape).h-(selectedUndoArea | castShape).y < 0 ? (selectedUndoArea | castShape).h : (selectedUndoArea | castShape).y}}"
+                    attr.width="{{(selectedUndoArea | castShape).w-(selectedUndoArea | castShape).x < 0 ? (selectedUndoArea | castShape).x-(selectedUndoArea | castShape).w : (selectedUndoArea | castShape).w-(selectedUndoArea | castShape).x}}"
+                    attr.height="{{(selectedUndoArea | castShape).h - (selectedUndoArea | castShape).y < 0 ? (selectedUndoArea | castShape).y - (selectedUndoArea | castShape).h : (selectedUndoArea | castShape).h - (selectedUndoArea | castShape).y}}"
+                    fill="#4db6ac"
+                    opacity="0.3" stroke="#00857c" attr.stroke-width="{{(selectedAreaIndex | isNan) ? 0 : 1}}"
+                    />
+            </ng-container>
+        </ng-container>
     </svg>
-    <draw-box class="canvas-box" [style.pointer-events]="drawBoxPointerEvents"></draw-box>
+    <draw-box class="canvas-box" [style.pointer-events]="drawBoxPointerEvents" style.background-size="{{viewportSize.width}}px {{viewportSize.height}}px"></draw-box>
+    <!-- The rowHeight introduces an offset of 1px for each row if the plain viewportSize is used, therefore the sum of such offsets must be removed from the count beforehand and a modified rowHeight must be passed as parameter -->
+    <mat-grid-list *ngIf="originalSize" [cols]="originalSize.width/viewportSize.width" rowHeight="{{(originalSize.height-(gridIndexes.length/(originalSize.width/viewportSize.width)))/(originalSize.height/viewportSize.height)}}px" class="grid-box">
+        <mat-grid-tile *ngFor="let tile of gridIndexes"
+        [class.frame]="tile.is_frame">
+            <div class="label">
+                <span [class.selected]="!(selectedAreaIndex | isNan) && selectedAreaIndex >= 0 && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Column' && areas[selectedAreaIndex].pos.c === tile.c">{{tile.c}}</span>
+                , 
+                <span [class.selected]="!(selectedAreaIndex | isNan) && selectedAreaIndex >= 0 && $any(this.formArray!.controls[selectedAreaIndex].get('direction')?.value)?.label === 'Row' && areas[selectedAreaIndex].pos.r === tile.r">{{tile.r}}</span>
+                <mat-icon *ngIf="tile.is_frame && arrow !== undefined">{{arrow}}</mat-icon>
+            </div>
+        </mat-grid-tile>
+    </mat-grid-list>
+</div>
+<div *ngIf="!(image$ | async)" class="t-education" style="display: flex; align-items: center; justify-content: center;">
+    <span>No spritesheet selected</span>
 </div>
