@@ -1,0 +1,7 @@
+.draggable {
+    cursor: grab;
+
+    &.cdk-drag-dragging {
+        cursor: grabbing;
+    }
+}

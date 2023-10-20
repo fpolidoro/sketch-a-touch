@@ -245,6 +245,14 @@ export class LiveBoxComponent implements OnInit {
       this.gridIndexes.forEach(gi => gi.is_frame = false)
     }
   }
+
+  /** Handle cdkDragEnded event on an interactive area
+   * @param event The cdkDragEnd event, which contains the coordinates of the drop location
+   */
+  changePosition(event: any): void {
+    console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
+    console.log(event)
+  }
 }
 
 interface ITileAsFrame extends ITile {

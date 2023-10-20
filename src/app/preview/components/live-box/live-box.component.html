@@ -40,7 +40,8 @@
                     'url(#pending'+ (selectedAreaIndex === i ? '-selected' : '') +')' :
                     'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
                     opacity="0.5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
-                    (click)="selectArea(i)" />
+                    (click)="selectArea(i)" [class.draggable]="selectedAreaIndex === i"
+                    cdkDrag [cdkDragDisabled]="selectedAreaIndex !== i" (cdkDragEnded)="changePosition($event)"/>
                 <rect *ngSwitchCase="'rectangle'"
                     attr.x="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).w : (area | castShape).x}}"
                     attr.y="{{(area | castShape).h-(area | castShape).y < 0 ? (area | castShape).h : (area | castShape).y}}"
@@ -50,7 +51,8 @@
                         'url(#pending'+ (selectedAreaIndex === i ? '-selected' : '') +')' :
                         'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
                     opacity="0.5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
-                    (click)="selectArea(i)" />
+                    (click)="selectArea(i)" [class.draggable]="selectedAreaIndex === i"
+                    cdkDrag [cdkDragDisabled]="selectedAreaIndex !== i" (cdkDragEnded)="changePosition($event)"/>
             </ng-container>
         </ng-container>
         <ng-container *ngIf="selectedUndoArea">
