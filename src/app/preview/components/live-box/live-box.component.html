@@ -1,7 +1,9 @@
+<span *ngIf="point">{{point.x}}, {{point.y}}</span>
+<span *ngIf="!(selectedAreaIndex | isNan)">{{areas[selectedAreaIndex].x}}, {{areas[selectedAreaIndex].y}}</span>
 <div *ngIf="image$ | async" style="position: relative; overflow-x: hidden; overflow-y: auto;">
     <img [src]="image$ | async">
     <svg #canvas attr.width="{{(originalSize !== undefined ? originalSize.width : 0)}}"
-        attr.height="{{(originalSize !== undefined ? originalSize.height : 0)}}" class="canvas-box">
+        attr.height="{{(originalSize !== undefined ? originalSize.height : 0)}}" class="canvas-box" cdkDropList>
         <defs>
             <pattern id="invalid" patternUnits="userSpaceOnUse" width="20" height="80" patternTransform="scale(1) rotate(45)">
                 <rect x="0" y="0" width="100%" height="100%" fill="rgba(0, 0, 0, 0.15)"></rect>
@@ -42,8 +44,8 @@
                     'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
                     opacity="0.5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="clickArea$.next(i)" [class.draggable]="selectedAreaIndex === i"
-                    cdkDrag [cdkDragDisabled]="selectedAreaIndex !== i"
-                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragEnded)="dragEnd$.next($event)"/>
+                    cdkDrag
+                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragMoved)="dragMove$.next($event)" (cdkDragEnded)="dragEnd$.next($event)" (cdkDragDropped)="dragDrop$.next($event)" />
                 <rect *ngSwitchCase="'rectangle'"
                     attr.x="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).w : (area | castShape).x}}"
                     attr.y="{{(area | castShape).h-(area | castShape).y < 0 ? (area | castShape).h : (area | castShape).y}}"
@@ -54,8 +56,8 @@
                         'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
                     opacity="0.5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="clickArea$.next(i)" [class.draggable]="selectedAreaIndex === i"
-                    cdkDrag [cdkDragDisabled]="selectedAreaIndex !== i"
-                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragEnded)="dragEnd$.next($event)"/>
+                    cdkDrag
+                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragEnded)="dragEnd$.next($event)" (cdkDragDropped)="dragDrop$.next($event)" />
             </ng-container>
         </ng-container>
         <ng-container *ngIf="selectedUndoArea">

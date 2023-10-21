@@ -5,7 +5,7 @@ import { IArea, ICircle, IRect, ITile } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
-import { BehaviorSubject, bufferToggle, debounceTime, delay, filter, map, merge, Observable, race, repeat, skipUntil, skipWhile, startWith, Subject, Subscription, switchMap, take, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
+import { BehaviorSubject, bufferToggle, debounceTime, delay, exhaustMap, filter, finalize, map, merge, Observable, race, repeat, skipUntil, skipWhile, startWith, Subject, Subscription, switchMap, take, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'live-box',
@@ -25,8 +25,11 @@ export class LiveBoxComponent implements OnInit {
   clickArea$: Subject<number> = new Subject<number>()
   /** Emits the id of the area that is about to be dragged */
   dragStart$: Subject<number> = new Subject<number>()
+  /** Emits the CdkDragMove event of the area that is being dragged */
+  dragMove$: Subject<any> = new Subject<any>()
   /** Emits the CdkDragEnd event of the area that has just been dragged */
   dragEnd$: Subject<any> = new Subject<any>()
+  dragDrop$: Subject<any> = new Subject<any>()
   
 
   areas: IArea[] = []
@@ -148,15 +151,124 @@ export class LiveBoxComponent implements OnInit {
       })
     ).subscribe(() => this._findFrames()))
 
-    this.dragStart$.pipe(
-      tap(() => console.warn('Drag START')),
-    ).subscribe(() => this._semaphore$.next('RED'))
+    // this.dragStart$.pipe(
+    //   tap(() => console.warn('Drag START')),
+    //   exhaustMap((index: number) => this.dragMove$.pipe(
+    //     tap((event: any) => {
+    //       console.log(event)
+    //     }),
+    //     takeUntil(this.dragEnd$.pipe(
+    //       tap(() => console.info('Drag END')),
+    //       tap((event: any) => {
+    //         let area = this.areas[this.selectedAreaIndex]
+    
+    //         console.log(area)
+    //         console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
+    //         console.log(event)
+            
+    //         this.point.x = event.dropPoint.x
+    //         this.point.y = event.dropPoint.y
+    //         console.log(event.source.element.nativeElement.style.transform)
+    //         let transform = event.source.element.nativeElement.style.transform
+    //         const numbers = transform.match(/-*\d+/g).map(Number)
+    
+    //         this.point.x = area.x + numbers[1]
+    //         this.point.y = area.y + numbers[2]
+    //         console.log(numbers)
+            
+    //         // area.x = event.dropPoint.x
+    //         // area.y = event.dropPoint.y
+    
+    //         // console.log(area)
+    //         // this._findFrames()
+    
+    //         // event.source.element.nativeElement.style = {}
+    
+    //         this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)
+    //       }),
+    //     )),
+    //   ))
+    // ).subscribe()
+
+    let originalAreaPosition: any
+    race(
+      this.clickArea$.pipe(
+        tap(() => console.warn('Click')),
+        tap((index: number) => {
+          this._fileService.selectInteractiveArea(index)
+          console.log('Selected area')
+          this.point = {
+            x: this.areas[index].x,
+            y: this.areas[index].y
+          }
+        }),
+        map(() => 'Click'),
+        take(1)
+      ),
+      this.dragStart$.pipe(
+        tap(() => console.warn('Drag START')),
+        tap((index: number) => {
+          this.selectedAreaIndex = index
+          this._fileService.selectInteractiveArea(index)
+          console.log('Selected area')
+          this.point = {
+            x: this.areas[index].x,
+            y: this.areas[index].y
+          }
+
+          originalAreaPosition = {
+            x: this.areas[index].x,
+            y: this.areas[index].y
+          }
+        }),
+        exhaustMap((index: number) => this.dragMove$.pipe(
+          tap((event: any) => {
+            console.log(event)
+            let area = this.areas[index]
+
+            this.point.x = originalAreaPosition!.x + event.distance.x
+            this.point.y = originalAreaPosition!.y + event.distance.y
+
+            this.areas[index].x = this.point.x
+            this.areas[index].y = this.point.y
+            console.log(`${this.areas[index].x}, ${this.areas[index].y}`)
+          }),
+          takeUntil(this.dragEnd$.pipe(
+            tap(() => console.info('Drag END')),
+            tap((event: any) => {
+              let area = this.areas[this.selectedAreaIndex]
+      
+              console.log(area)
+              console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
+              console.log(event)
+              
+              this.point.x = event.dropPoint.x
+              this.point.y = event.dropPoint.y
+              console.log(event.source.element.nativeElement.style.transform)
+              
+              area.x = event.dropPoint.x
+              area.y = event.dropPoint.y
+      
+              // console.log(area)
+              // this._findFrames()
+      
+              // event.source.element.nativeElement.style = {}
+      
+              this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)
+            }),
+          ))
+        )),
+        map(() => 'Drag START')
+      )
+    ).pipe(
+      repeat()
+    ).subscribe((who:string) => console.log(`${who} won`))
+
+    this.dragDrop$.pipe(tap(() => console.log('Drag DROP'))).subscribe()
 
     this.dragEnd$.pipe(
       tap(() => console.warn('Drag END')),
-      tap((event: any) => {}),
-      delay(1000),
-      tap(() => this._semaphore$.next('GREEN'))
+      
     ).subscribe((event: any) => {
       // console.warn(`Drag END`)
       // let area = this.areas[this.selectedAreaIndex]
@@ -180,21 +292,21 @@ export class LiveBoxComponent implements OnInit {
       // this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)
     })
     
-    this._subscription.add(
-      this.clickArea$.pipe(
-        withLatestFrom(this._semaphore$),
-        filter(([index, color]) => color === 'GREEN'),
-        map(([index, color]) => index),
-        tap(() => console.log('clicked')),
-      ).subscribe((index: number) => {
-        this._fileService.selectInteractiveArea(index)
-        console.log('Selected area')
-        this.point = {
-          x: this.areas[index].x,
-          y: this.areas[index].y
-        }
-      })
-    )
+    // this._subscription.add(
+    //   this.clickArea$.pipe(
+    //     withLatestFrom(this._semaphore$),
+    //     filter(([index, color]) => color === 'GREEN'),
+    //     map(([index, color]) => index),
+    //     tap(() => console.log('clicked')),
+    //   ).subscribe((index: number) => {
+    //     this._fileService.selectInteractiveArea(index)
+    //     console.log('Selected area')
+    //     this.point = {
+    //       x: this.areas[index].x,
+    //       y: this.areas[index].y
+    //     }
+    //   })
+    // )
   }
 
   ngOnDestroy(): void {
