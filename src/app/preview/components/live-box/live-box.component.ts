@@ -5,7 +5,7 @@ import { IArea, ICircle, IRect, ITile } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
 import * as d3 from 'd3';
-import { bufferToggle, debounceTime, filter, map, merge, Observable, startWith, Subscription, switchMap, take, tap, withLatestFrom } from 'rxjs';
+import { BehaviorSubject, bufferToggle, debounceTime, delay, filter, map, merge, Observable, race, repeat, skipUntil, skipWhile, startWith, Subject, Subscription, switchMap, take, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'live-box',
@@ -22,6 +22,13 @@ export class LiveBoxComponent implements OnInit {
     map((img: IImageFile) => img.base64)
   )
 
+  clickArea$: Subject<number> = new Subject<number>()
+  /** Emits the id of the area that is about to be dragged */
+  dragStart$: Subject<number> = new Subject<number>()
+  /** Emits the CdkDragEnd event of the area that has just been dragged */
+  dragEnd$: Subject<any> = new Subject<any>()
+  
+
   areas: IArea[] = []
   selectedUndoArea?: IArea
   selectedAreaIndex: number = NaN
@@ -32,6 +39,9 @@ export class LiveBoxComponent implements OnInit {
   /** Defines the icon to be displayed on frames, to indicate the direction of the animation */
   arrow: string|undefined
 
+  point!: {x: number, y: number}
+
+  private _semaphore$: BehaviorSubject<'GREEN'|'RED'> = new BehaviorSubject<'GREEN'|'RED'>('GREEN')
   private _subscription?: Subscription
 
   constructor(private _fileService: FileService) { }
@@ -125,8 +135,8 @@ export class LiveBoxComponent implements OnInit {
         this._fileService.deleteInteractiveArea(NaN)  //...and notify settings-box that deletion here is done, and it can proceed to delete the item from its side
       })
     ).subscribe())
-
-    this._fileService.formArray$.pipe(
+    
+    this._subscription.add(this._fileService.formArray$.pipe(
       take(1),
       switchMap((array: FormArray) => {
         this.formArray = array
@@ -136,20 +146,76 @@ export class LiveBoxComponent implements OnInit {
             this._fileService.viewportChanged$
           ).pipe(withLatestFrom(this._fileService.selectedInteractiveAreaChanged$))
       })
-    ).subscribe(() => this._findFrames())
+    ).subscribe(() => this._findFrames()))
+
+    this.dragStart$.pipe(
+      tap(() => console.warn('Drag START')),
+    ).subscribe(() => this._semaphore$.next('RED'))
+
+    this.dragEnd$.pipe(
+      tap(() => console.warn('Drag END')),
+      tap((event: any) => {}),
+      delay(1000),
+      tap(() => this._semaphore$.next('GREEN'))
+    ).subscribe((event: any) => {
+      // console.warn(`Drag END`)
+      // let area = this.areas[this.selectedAreaIndex]
+
+      // console.log(area)
+      // console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
+      // console.log(event)
+      
+      // this.point = {
+      //   x: event.dropPoint.x,
+      //   y: event.dropPoint.y
+      // }
+      // // area.x = event.dropPoint.x
+      // // area.y = event.dropPoint.y
+
+      // // console.log(area)
+      // // this._findFrames()
+
+      // // event.source.element.nativeElement.style = {}
+
+      // this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)
+    })
+    
+    this._subscription.add(
+      this.clickArea$.pipe(
+        withLatestFrom(this._semaphore$),
+        filter(([index, color]) => color === 'GREEN'),
+        map(([index, color]) => index),
+        tap(() => console.log('clicked')),
+      ).subscribe((index: number) => {
+        this._fileService.selectInteractiveArea(index)
+        console.log('Selected area')
+        this.point = {
+          x: this.areas[index].x,
+          y: this.areas[index].y
+        }
+      })
+    )
   }
 
   ngOnDestroy(): void {
     this._subscription?.unsubscribe()
   }
 
-  selectArea(index: number){
+  /** Handles clicks on interactive areas and announces their selection to other components
+   * @param index The index of the area being selected
+   */
+  /*selectArea(index: number){
     this._fileService.selectInteractiveArea(index)
-  }
+    console.log('Selected area')
+    this.point = {
+      x: this.areas[index].x,
+      y: this.areas[index].y
+    }
+  }*/
 
   /** Recompute the tiles that must be highlighted as frames based on the currently selected interactive area identified by {@link selectedAreaIndex} */
   private _findFrames(): void {
-    if(this.selectedAreaIndex !== NaN && this.selectedAreaIndex >= 0){
+    if(!Number.isNaN(this.selectedAreaIndex) && this.selectedAreaIndex >= 0){
       let area = this.areas[this.selectedAreaIndex]
       let control = this.formArray?.controls[this.selectedAreaIndex] as FormGroup
       if(control){
@@ -249,10 +315,6 @@ export class LiveBoxComponent implements OnInit {
   /** Handle cdkDragEnded event on an interactive area
    * @param event The cdkDragEnd event, which contains the coordinates of the drop location
    */
-  changePosition(event: any): void {
-    console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
-    console.log(event)
-  }
 }
 
 interface ITileAsFrame extends ITile {

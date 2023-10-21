@@ -17,6 +17,7 @@ export class FileService {
   private _interactiveAreaRequestSource: ReplaySubject<'circle'|'rectangle'> = new ReplaySubject<'circle'|'rectangle'>(1)
   private _interactiveAreaActionSource: ReplaySubject<'ok'|'reset'|'cancel'|null> = new ReplaySubject<'ok'|'reset'|'cancel'|null>(1)
   private _interactiveAreaSelectSource: ReplaySubject<number> = new ReplaySubject<number>(1)
+  private _interactiveAreaDraggedSource: ReplaySubject<IAreaDragged> = new ReplaySubject<IAreaDragged>(1)
   private _deleteInteractiveAreaSource: ReplaySubject<number> = new ReplaySubject<number>(1)
   private _formArraySource: ReplaySubject<FormArray> = new ReplaySubject<FormArray>(1)
   private _toggleCodeDrawerSource: ReplaySubject<boolean> = new ReplaySubject<boolean>(1)
@@ -63,6 +64,17 @@ export class FileService {
   }
   /** Listens to the requests issued by {@link requestInteractiveArea} */
   interactiveAreaRequested$ = this._interactiveAreaRequestSource.asObservable()
+
+  /** Announces the end of the dragging action on a specific interactive area
+   * @param area The area being dragged
+   * @param index The position of the area within the list of interactive areas
+   */
+  interactiveAreaDragEnded(area: IArea, index: number): void {
+    this._interactiveAreaDraggedSource.next({area: area, index: index})
+  }
+
+  /** Observes the release event of the area being dragged */
+  interactiveAreaDragged$ = this._interactiveAreaDraggedSource.asObservable()  
 
   /** Tells whether the interactive area should be saved, discarded or reset
    * @param action The action that defines what will happen to the interactive area:
@@ -117,4 +129,12 @@ export class FileService {
   }
 
   drawerStatusChanged$ = this._drawerStatusSource.asObservable()
+}
+
+/** Bundle for the interactive area being dragged */
+export interface IAreaDragged {
+  /** The area being dragged */
+  area: IArea,
+  /** Position of the area within the list of interactive areas drawn on the canvas */
+  index: number
 }
