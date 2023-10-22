@@ -41,14 +41,14 @@
                 />
 
                 <rect *ngSwitchCase="'rectangle'"
-                    attr.x="{{(point | castShape).w-(point | castShape).x < 0 ? (point | castShape).w : (point | castShape).x}}"
-                    attr.y="{{(point | castShape).h-(point | castShape).y < 0 ? (point | castShape).h : (point | castShape).y}}"
-                    attr.width="{{(point | castShape).w-(point | castShape).x < 0 ? (point | castShape).x-(point | castShape).w : (point | castShape).w-(point | castShape).x}}"
-                    attr.height="{{(point | castShape).h - (point | castShape).y < 0 ? (point | castShape).y - (point | castShape).h : (point | castShape).h - (point | castShape).y}}"
+                    attr.x="{{(point | castShape).x}}"
+                    attr.y="{{(point | castShape).y}}"
+                    attr.width="{{(point | castShape).w}}"
+                    attr.height="{{(point | castShape).h}}"
                 />
             </ng-container>
         </ng-container>
-        <!-- <circle *ngIf="!(selectedAreaIndex | isNan) && point" [attr.r]="(areas[selectedAreaIndex] | castShape).r" [attr.cx]="point.x" [attr.cy]="point.y" fill="#000000"></circle> -->
+        <circle *ngIf="!(selectedAreaIndex | isNan) && point" r="2" [attr.cx]="point.x" [attr.cy]="point.y" fill="#000000"></circle>
         <ng-container *ngFor="let area of areas; let i = index">
             <ng-container [ngSwitch]="area.type">
                 <circle *ngSwitchCase="'circle'"
@@ -74,7 +74,7 @@
                     opacity=".5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="clickArea$.next(i)" [class.draggable]="selectedAreaIndex === i"
                     cdkDrag
-                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragEnded)="dragEnd$.next($event)" (cdkDragDropped)="dragDrop$.next($event)" />
+                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragMoved)="dragMove$.next($event)" (cdkDragEnded)="dragEnd$.next($event)" (cdkDragDropped)="dragDrop$.next($event)" />
             </ng-container>
         </ng-container>
         <ng-container *ngIf="selectedUndoArea">

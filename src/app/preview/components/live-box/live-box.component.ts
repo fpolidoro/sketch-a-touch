@@ -159,13 +159,27 @@ export class LiveBoxComponent implements OnInit {
       this.clickArea$.pipe(
         tap(() => console.warn('Click')),
         tap((index: number) => {
+          let area = this.areas[index]
           this._fileService.selectInteractiveArea(index)
           console.log('Selected area')
-          this.point = Object.assign({}, {
-            x: this.areas[index].x,
-            y: this.areas[index].y,
-            type: this.areas[index].type
-          }) as IArea
+
+          switch(area.type){
+            case 'circle':
+              this.point = Object.assign({}, {
+                x: area.x,
+                y: area.y,
+                type: area.type
+              }) as IArea
+              break
+            case 'rectangle':
+              this.point = Object.assign({}, {
+                x: ((area as IRect).x + (area as IRect).w)/2,
+                y: ((area as IRect).y + (area as IRect).h)/2,
+                type: area.type
+              }) as IArea 
+              break
+          }
+          
         }),
         map(() => 'Click'),
         take(1)
@@ -192,9 +206,9 @@ export class LiveBoxComponent implements OnInit {
               })
               break
             case 'rectangle':
-              this.point = Object.assign(this.point as IRect, {
-                w: (area as IRect).w,
-                h: (area as IRect).h
+              this.point = Object.assign(this.point, {
+                x: /*(area as IRect).w - (area as IRect).x < 0 ? (area as IRect).w : */((area as IRect).x + (area as IRect).w)/2,
+                y: /*(area as IRect).h - (area as IRect).y < 0 ? (area as IRect).h :*/ ((area as IRect).y + (area as IRect).h)/2,
               })
               break
           }
@@ -205,10 +219,18 @@ export class LiveBoxComponent implements OnInit {
             console.log(event)
             let area = this.areas[index]
 
-            this.point!.x = area.x + event.distance.x
-            this.point!.y = area.y + event.distance.y
+            switch(area.type){
+              case 'circle':
+                this.point!.x = area.x + event.distance.x
+                this.point!.y = area.y + event.distance.y
+                break
+              case 'rectangle':
+                this.point!.x = (area.x + (area as IRect).w)/2 + event.distance.x
+                this.point!.y = (area.y + (area as IRect).h)/2 + event.distance.y
+                break
+            }
 
-            console.log(`${this.areas[index].x}, ${this.areas[index].y}`)
+            console.log(`${this.areas[index].x} -> ${this.point!.x}, ${this.areas[index].y} -> ${this.point!.y}`)
           }),
           takeUntil(this.dragEnd$.pipe(
             tap(() => console.info('Drag END')),
@@ -220,14 +242,30 @@ export class LiveBoxComponent implements OnInit {
               console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
               console.log(event)
               
-              this.point!.x = event.dropPoint.x
-              this.point!.y = event.dropPoint.y
-              console.log(event.source.element.nativeElement.style.transform)
+
+              // this.point!.x = event.dropPoint.x
+              // this.point!.y = event.dropPoint.y
+              // console.log(event.source.element.nativeElement.style.transform)
               
-              area.x = event.dropPoint.x
-              area.y = event.dropPoint.y
+              // area.x = event.dropPoint.x
+              // area.y = event.dropPoint.y
+
+              switch(this.point!.type){
+                case 'circle':
+                  this.point!.x = event.dropPoint.x
+                  this.point!.y = event.dropPoint.y
+                  console.log(event.source.element.nativeElement.style.transform)
+                  
+                  area.x = event.dropPoint.x
+                  area.y = event.dropPoint.y
+                  break
+                case 'rectangle':
+                  area.x = event.dropPoint.x - (area as IRect).w/2,
+                  area.y = event.dropPoint.y - (area as IRect).h/2
+                  break
+              }
       
-              // console.log(area)
+              console.log(area)
               // this._findFrames()
       
               // event.source.element.nativeElement.style = {}
