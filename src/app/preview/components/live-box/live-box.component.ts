@@ -29,6 +29,8 @@ export class LiveBoxComponent implements OnInit {
   dragMove$: Subject<any> = new Subject<any>()
   /** Emits the CdkDragEnd event of the area that has just been dragged */
   dragEnd$: Subject<any> = new Subject<any>()
+  /** Emits the CdkDragDrop event when the area is dropped on the SVG. This is the event that concludes
+   * the drag action and prevents clicks from being triggered when the mouse button is released */
   dragDrop$: Subject<any> = new Subject<any>()
   
 
@@ -151,47 +153,9 @@ export class LiveBoxComponent implements OnInit {
       })
     ).subscribe(() => this._findFrames()))
 
-    // this.dragStart$.pipe(
-    //   tap(() => console.warn('Drag START')),
-    //   exhaustMap((index: number) => this.dragMove$.pipe(
-    //     tap((event: any) => {
-    //       console.log(event)
-    //     }),
-    //     takeUntil(this.dragEnd$.pipe(
-    //       tap(() => console.info('Drag END')),
-    //       tap((event: any) => {
-    //         let area = this.areas[this.selectedAreaIndex]
-    
-    //         console.log(area)
-    //         console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
-    //         console.log(event)
-            
-    //         this.point.x = event.dropPoint.x
-    //         this.point.y = event.dropPoint.y
-    //         console.log(event.source.element.nativeElement.style.transform)
-    //         let transform = event.source.element.nativeElement.style.transform
-    //         const numbers = transform.match(/-*\d+/g).map(Number)
-    
-    //         this.point.x = area.x + numbers[1]
-    //         this.point.y = area.y + numbers[2]
-    //         console.log(numbers)
-            
-    //         // area.x = event.dropPoint.x
-    //         // area.y = event.dropPoint.y
-    
-    //         // console.log(area)
-    //         // this._findFrames()
-    
-    //         // event.source.element.nativeElement.style = {}
-    
-    //         this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)
-    //       }),
-    //     )),
-    //   ))
-    // ).subscribe()
-
     let originalAreaPosition: any
-    race(
+    //observe click and drag actions, which must be mutually exclusive, hence race
+    this._subscription.add(race(
       this.clickArea$.pipe(
         tap(() => console.warn('Click')),
         tap((index: number) => {
@@ -221,6 +185,7 @@ export class LiveBoxComponent implements OnInit {
             y: this.areas[index].y
           }
         }),
+        take(1),
         exhaustMap((index: number) => this.dragMove$.pipe(
           tap((event: any) => {
             console.log(event)
@@ -262,51 +227,9 @@ export class LiveBoxComponent implements OnInit {
       )
     ).pipe(
       repeat()
-    ).subscribe((who:string) => console.log(`${who} won`))
+    ).subscribe((who:string) => console.log(`${who} won`)))
 
     this.dragDrop$.pipe(tap(() => console.log('Drag DROP'))).subscribe()
-
-    this.dragEnd$.pipe(
-      tap(() => console.warn('Drag END')),
-      
-    ).subscribe((event: any) => {
-      // console.warn(`Drag END`)
-      // let area = this.areas[this.selectedAreaIndex]
-
-      // console.log(area)
-      // console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
-      // console.log(event)
-      
-      // this.point = {
-      //   x: event.dropPoint.x,
-      //   y: event.dropPoint.y
-      // }
-      // // area.x = event.dropPoint.x
-      // // area.y = event.dropPoint.y
-
-      // // console.log(area)
-      // // this._findFrames()
-
-      // // event.source.element.nativeElement.style = {}
-
-      // this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)
-    })
-    
-    // this._subscription.add(
-    //   this.clickArea$.pipe(
-    //     withLatestFrom(this._semaphore$),
-    //     filter(([index, color]) => color === 'GREEN'),
-    //     map(([index, color]) => index),
-    //     tap(() => console.log('clicked')),
-    //   ).subscribe((index: number) => {
-    //     this._fileService.selectInteractiveArea(index)
-    //     console.log('Selected area')
-    //     this.point = {
-    //       x: this.areas[index].x,
-    //       y: this.areas[index].y
-    //     }
-    //   })
-    // )
   }
 
   ngOnDestroy(): void {
