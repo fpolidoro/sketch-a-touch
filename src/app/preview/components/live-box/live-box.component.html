@@ -1,5 +1,5 @@
-<span *ngIf="point">{{point.x}}, {{point.y}}</span>
-<span *ngIf="!(selectedAreaIndex | isNan)">{{areas[selectedAreaIndex].x}}, {{areas[selectedAreaIndex].y}}</span>
+<!-- <span *ngIf="point">{{point.x}}, {{point.y}}</span>
+<span *ngIf="!(selectedAreaIndex | isNan)">{{areas[selectedAreaIndex].x}}, {{areas[selectedAreaIndex].y}}</span> -->
 <div *ngIf="image$ | async" style="position: relative; overflow-x: hidden; overflow-y: auto;">
     <img [src]="image$ | async">
     <svg #canvas attr.width="{{(originalSize !== undefined ? originalSize.width : 0)}}"
@@ -32,7 +32,23 @@
                 <path d='M-5 40H5M-5 0H5m30 0h10M35 40h10M15 20h10' stroke-linecap='square' stroke-width='7.5' stroke="rgba(255, 0, 0, 0.7)" fill='none'/>
             </pattern>
         </defs>
-        <circle *ngIf="!(selectedAreaIndex | isNan) && point" r="2" [attr.cx]="point.x" [attr.cy]="point.y" fill="#000000"></circle>
+        <ng-container *ngIf="!(draggedAreaIndex | isNan) && point">
+            <ng-container [ngSwitch]="point.type">
+                <circle *ngSwitchCase="'circle'" [attr.r]="(areas[draggedAreaIndex] | castShape).r" [attr.cx]="point.x" [attr.cy]="point.y" 
+                    attr.fill="{{this.formArray!.controls[draggedAreaIndex].valid ? '#4db6ac' : this.formArray!.controls[draggedAreaIndex].pending ?
+                    'url(#pending-selected)' : 'url(#invalid-selected)'}}"
+                    opacity=".5" attr.stroke="{{!this.formArray!.controls[draggedAreaIndex].valid ? 'red' : '#00857c'}}" stroke-width="4"
+                />
+
+                <rect *ngSwitchCase="'rectangle'"
+                    attr.x="{{(point | castShape).w-(point | castShape).x < 0 ? (point | castShape).w : (point | castShape).x}}"
+                    attr.y="{{(point | castShape).h-(point | castShape).y < 0 ? (point | castShape).h : (point | castShape).y}}"
+                    attr.width="{{(point | castShape).w-(point | castShape).x < 0 ? (point | castShape).x-(point | castShape).w : (point | castShape).w-(point | castShape).x}}"
+                    attr.height="{{(point | castShape).h - (point | castShape).y < 0 ? (point | castShape).y - (point | castShape).h : (point | castShape).h - (point | castShape).y}}"
+                />
+            </ng-container>
+        </ng-container>
+        <!-- <circle *ngIf="!(selectedAreaIndex | isNan) && point" [attr.r]="(areas[selectedAreaIndex] | castShape).r" [attr.cx]="point.x" [attr.cy]="point.y" fill="#000000"></circle> -->
         <ng-container *ngFor="let area of areas; let i = index">
             <ng-container [ngSwitch]="area.type">
                 <circle *ngSwitchCase="'circle'"
@@ -42,10 +58,11 @@
                     attr.fill="{{this.formArray!.controls[i].valid ? '#4db6ac' : this.formArray!.controls[i].pending ?
                     'url(#pending'+ (selectedAreaIndex === i ? '-selected' : '') +')' :
                     'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
-                    opacity="0.5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
+                    opacity=".5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="clickArea$.next(i)" [class.draggable]="selectedAreaIndex === i"
                     cdkDrag
-                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragMoved)="dragMove$.next($event)" (cdkDragEnded)="dragEnd$.next($event)" (cdkDragDropped)="dragDrop$.next($event)" />
+                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragMoved)="dragMove$.next($event)" (cdkDragEnded)="dragEnd$.next($event)" (cdkDragDropped)="dragDrop$.next($event)" 
+                    />
                 <rect *ngSwitchCase="'rectangle'"
                     attr.x="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).w : (area | castShape).x}}"
                     attr.y="{{(area | castShape).h-(area | castShape).y < 0 ? (area | castShape).h : (area | castShape).y}}"
@@ -54,7 +71,7 @@
                     attr.fill="{{this.formArray!.controls[i].valid ? '#4db6ac' : this.formArray!.controls[i].pending ?
                         'url(#pending'+ (selectedAreaIndex === i ? '-selected' : '') +')' :
                         'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
-                    opacity="0.5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
+                    opacity=".5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="clickArea$.next(i)" [class.draggable]="selectedAreaIndex === i"
                     cdkDrag
                     (cdkDragStarted)="dragStart$.next(i)" (cdkDragEnded)="dragEnd$.next($event)" (cdkDragDropped)="dragDrop$.next($event)" />

@@ -44,9 +44,10 @@ export class LiveBoxComponent implements OnInit {
   /** Defines the icon to be displayed on frames, to indicate the direction of the animation */
   arrow: string|undefined
 
-  point!: {x: number, y: number}
+  point: IArea|undefined
+  /** Stores the index of the area that is currently being dragged. This is used to draw the preview of the area as it is dragged on the viewport */
+  draggedAreaIndex: number = NaN
 
-  private _semaphore$: BehaviorSubject<'GREEN'|'RED'> = new BehaviorSubject<'GREEN'|'RED'>('GREEN')
   private _subscription?: Subscription
 
   constructor(private _fileService: FileService) { }
@@ -153,7 +154,6 @@ export class LiveBoxComponent implements OnInit {
       })
     ).subscribe(() => this._findFrames()))
 
-    let originalAreaPosition: any
     //observe click and drag actions, which must be mutually exclusive, hence race
     this._subscription.add(race(
       this.clickArea$.pipe(
@@ -161,10 +161,11 @@ export class LiveBoxComponent implements OnInit {
         tap((index: number) => {
           this._fileService.selectInteractiveArea(index)
           console.log('Selected area')
-          this.point = {
+          this.point = Object.assign({}, {
             x: this.areas[index].x,
-            y: this.areas[index].y
-          }
+            y: this.areas[index].y,
+            type: this.areas[index].type
+          }) as IArea
         }),
         map(() => 'Click'),
         take(1)
@@ -172,17 +173,30 @@ export class LiveBoxComponent implements OnInit {
       this.dragStart$.pipe(
         tap(() => console.warn('Drag START')),
         tap((index: number) => {
+          this.draggedAreaIndex = index
+          let area = this.areas[index]
           this.selectedAreaIndex = index
           this._fileService.selectInteractiveArea(index)
           console.log('Selected area')
-          this.point = {
-            x: this.areas[index].x,
-            y: this.areas[index].y
-          }
 
-          originalAreaPosition = {
-            x: this.areas[index].x,
-            y: this.areas[index].y
+          this.point = Object.assign({}, {
+            x: area.x,
+            y: area.y,
+            type: area.type
+          }) as IArea
+
+          switch(area.type){
+            case 'circle':
+              this.point = Object.assign(this.point as ICircle, {
+                r: (area as ICircle).r
+              })
+              break
+            case 'rectangle':
+              this.point = Object.assign(this.point as IRect, {
+                w: (area as IRect).w,
+                h: (area as IRect).h
+              })
+              break
           }
         }),
         take(1),
@@ -191,24 +205,23 @@ export class LiveBoxComponent implements OnInit {
             console.log(event)
             let area = this.areas[index]
 
-            this.point.x = originalAreaPosition!.x + event.distance.x
-            this.point.y = originalAreaPosition!.y + event.distance.y
+            this.point!.x = area.x + event.distance.x
+            this.point!.y = area.y + event.distance.y
 
-            this.areas[index].x = this.point.x
-            this.areas[index].y = this.point.y
             console.log(`${this.areas[index].x}, ${this.areas[index].y}`)
           }),
           takeUntil(this.dragEnd$.pipe(
             tap(() => console.info('Drag END')),
             tap((event: any) => {
+              this.draggedAreaIndex = NaN
               let area = this.areas[this.selectedAreaIndex]
       
               console.log(area)
               console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
               console.log(event)
               
-              this.point.x = event.dropPoint.x
-              this.point.y = event.dropPoint.y
+              this.point!.x = event.dropPoint.x
+              this.point!.y = event.dropPoint.y
               console.log(event.source.element.nativeElement.style.transform)
               
               area.x = event.dropPoint.x
@@ -218,7 +231,7 @@ export class LiveBoxComponent implements OnInit {
               // this._findFrames()
       
               // event.source.element.nativeElement.style = {}
-      
+
               this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)
             }),
           ))
