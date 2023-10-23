@@ -1,3 +1,4 @@
+import { CdkDragEnd, CdkDragMove } from '@angular/cdk/drag-drop';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormGroup } from '@angular/forms';
 import { IImageFile, ISize } from '@preview/interfaces/files';
@@ -26,9 +27,9 @@ export class LiveBoxComponent implements OnInit {
   /** Emits the id of the area that is about to be dragged */
   dragStart$: Subject<number> = new Subject<number>()
   /** Emits the CdkDragMove event of the area that is being dragged */
-  dragMove$: Subject<any> = new Subject<any>()
+  dragMove$: Subject<CdkDragMove> = new Subject<CdkDragMove>()
   /** Emits the CdkDragEnd event of the area that has just been dragged */
-  dragEnd$: Subject<any> = new Subject<any>()
+  dragEnd$: Subject<CdkDragEnd> = new Subject<CdkDragEnd>()
   /** Emits the CdkDragDrop event when the area is dropped on the SVG. This is the event that concludes
    * the drag action and prevents clicks from being triggered when the mouse button is released */
   dragDrop$: Subject<any> = new Subject<any>()
@@ -176,12 +177,13 @@ export class LiveBoxComponent implements OnInit {
                 x: ((area as IRect).x + (area as IRect).w)/2,
                 y: ((area as IRect).y + (area as IRect).h)/2,
                 type: area.type
-              }) as IArea 
+              }) as IArea
+              console.log(`(${area.x}, ${area.y}) ${(area as IRect).w} x ${(area as IRect).h}\n(${this.point.x}, ${this.point.y})`)
+              console.info(`${(area as IRect).w - area.x},${(area as IRect).h - area.y}`)
               break
           }
           
         }),
-        map(() => 'Click'),
         take(1)
       ),
       this.dragStart$.pipe(
@@ -206,17 +208,20 @@ export class LiveBoxComponent implements OnInit {
               })
               break
             case 'rectangle':
-              this.point = Object.assign(this.point, {
-                x: /*(area as IRect).w - (area as IRect).x < 0 ? (area as IRect).w : */((area as IRect).x + (area as IRect).w)/2,
-                y: /*(area as IRect).h - (area as IRect).y < 0 ? (area as IRect).h :*/ ((area as IRect).y + (area as IRect).h)/2,
-              })
+              this.point = Object.assign(this.point as IRect, {
+                // x: /*(area as IRect).w - (area as IRect).x < 0 ? (area as IRect).w : */((area as IRect).x + (area as IRect).w)/2,
+                // y: /*(area as IRect).h - (area as IRect).y < 0 ? (area as IRect).h :*/ ((area as IRect).y + (area as IRect).h)/2,
+                w: (area as IRect).w,
+                h: (area as IRect).h
+              });
+              console.log(`point: (${this.point!.x}, ${this.point!.y}) ${(this.point! as IRect).w} x ${(this.point! as IRect).h}`)
               break
           }
         }),
         take(1),
         exhaustMap((index: number) => this.dragMove$.pipe(
-          tap((event: any) => {
-            console.log(event)
+          tap((event: CdkDragMove) => {
+            //console.log(event)
             let area = this.areas[index]
 
             switch(area.type){
@@ -225,12 +230,24 @@ export class LiveBoxComponent implements OnInit {
                 this.point!.y = area.y + event.distance.y
                 break
               case 'rectangle':
-                this.point!.x = (area.x + (area as IRect).w)/2 + event.distance.x
-                this.point!.y = (area.y + (area as IRect).h)/2 + event.distance.y
+                // this.point!.x = (area.x + (area as IRect).w)/2 + event.distance.x
+                // this.point!.y = (area.y + (area as IRect).h)/2 + event.distance.y
+                let centralInitial = {  //point at the center of the rectangle before dragStart
+                  x: ((area as IRect).w + area.x)/2,
+                  y: ((area as IRect).h + area.y)/2
+                }
+                let offset = {  //width and height of the rectangle before dragStart
+                  x: Math.abs((area as IRect).w - area.x),
+                  y: Math.abs((area as IRect).h - area.y)
+                };
+                (this.point as IRect).w = event.distance.x + offset.x + area.x;
+                (this.point as IRect).h = event.distance.y + offset.y + area.y
+                this.point!.x = area.x + event.distance.x// - centralInitial.x
+                this.point!.y = area.y + event.distance.y// - centralInitial.y
                 break
             }
 
-            console.log(`${this.areas[index].x} -> ${this.point!.x}, ${this.areas[index].y} -> ${this.point!.y}`)
+            //console.log(`${this.areas[index].x} -> ${this.point!.x}, ${this.areas[index].y} -> ${this.point!.y}`)
           }),
           takeUntil(this.dragEnd$.pipe(
             tap(() => console.info('Drag END')),
@@ -254,14 +271,28 @@ export class LiveBoxComponent implements OnInit {
                 case 'circle':
                   this.point!.x = event.dropPoint.x
                   this.point!.y = event.dropPoint.y
-                  console.log(event.source.element.nativeElement.style.transform)
+                  console.log(event.dropPoint)
                   
                   area.x = event.dropPoint.x
                   area.y = event.dropPoint.y
                   break
                 case 'rectangle':
-                  area.x = event.dropPoint.x - (area as IRect).w/2,
-                  area.y = event.dropPoint.y - (area as IRect).h/2
+                  let centralInitial = {  //point at the center of the rectangle before dragStart
+                    x: ((area as IRect).w + area.x)/2,
+                    y: ((area as IRect).h + area.y)/2
+                  }
+                  let offset = {  //width and height of the rectangle before dragStart
+                    x: Math.abs((area as IRect).w - area.x),
+                    y: Math.abs((area as IRect).h - area.y)
+                  };
+
+                  (area as IRect).w = event.dropPoint.x + offset.x/2;
+                  (area as IRect).h = event.dropPoint.y + offset.y/2
+                  area.x = area.x + event.dropPoint.x - centralInitial.x,
+                  area.y = area.y + event.dropPoint.y - centralInitial.y
+
+                  console.log(`(${area.x}, ${area.y}) ${(area as IRect).w} x ${(area as IRect).h}\n(${this.point!.x}, ${this.point!.y})`)
+                  console.info(`${(area as IRect).w - area.x},${(area as IRect).h - area.y}`)
                   break
               }
       
@@ -273,12 +304,11 @@ export class LiveBoxComponent implements OnInit {
               this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)
             }),
           ))
-        )),
-        map(() => 'Drag START')
+        ))
       )
     ).pipe(
       repeat()
-    ).subscribe((who:string) => console.log(`${who} won`)))
+    ).subscribe())
 
     this.dragDrop$.pipe(tap(() => console.log('Drag DROP'))).subscribe()
   }

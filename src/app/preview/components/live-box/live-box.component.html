@@ -41,14 +41,17 @@
                 />
 
                 <rect *ngSwitchCase="'rectangle'"
-                    attr.x="{{(point | castShape).x}}"
-                    attr.y="{{(point | castShape).y}}"
-                    attr.width="{{(point | castShape).w}}"
-                    attr.height="{{(point | castShape).h}}"
+                    attr.x="{{(point | castShape).w-(point | castShape).x < 0 ? (point | castShape).w : (point | castShape).x}}"
+                    attr.y="{{(point | castShape).h-(point | castShape).y < 0 ? (point | castShape).h : (point | castShape).y}}"
+                    attr.width="{{(point | castShape).w-(point | castShape).x < 0 ? (point | castShape).x-(point | castShape).w : (point | castShape).w-(point | castShape).x}}"
+                    attr.height="{{(point | castShape).h - (point | castShape).y < 0 ? (point | castShape).y - (point | castShape).h : (point | castShape).h - (point | castShape).y}}"
+                    attr.fill="{{this.formArray!.controls[draggedAreaIndex].valid ? '#4db6ac' : this.formArray!.controls[draggedAreaIndex].pending ?
+                    'url(#pending-selected)' : 'url(#invalid-selected)'}}"
+                    opacity=".5" attr.stroke="{{!this.formArray!.controls[draggedAreaIndex].valid ? 'red' : '#00857c'}}" stroke-width="4"
                 />
             </ng-container>
         </ng-container>
-        <circle *ngIf="!(selectedAreaIndex | isNan) && point" r="2" [attr.cx]="point.x" [attr.cy]="point.y" fill="#000000"></circle>
+        <!-- <circle *ngIf="!(selectedAreaIndex | isNan) && point" r="2" [attr.cx]="point.x" [attr.cy]="point.y" fill="#000000"></circle> -->
         <ng-container *ngFor="let area of areas; let i = index">
             <ng-container [ngSwitch]="area.type">
                 <circle *ngSwitchCase="'circle'"
