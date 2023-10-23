@@ -5,8 +5,7 @@ import { IImageFile, ISize } from '@preview/interfaces/files';
 import { IArea, ICircle, IRect, ITile } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
 
-import * as d3 from 'd3';
-import { BehaviorSubject, bufferToggle, debounceTime, delay, exhaustMap, filter, finalize, map, merge, Observable, race, repeat, skipUntil, skipWhile, startWith, Subject, Subscription, switchMap, take, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
+import { bufferToggle, exhaustMap, filter, last, map, merge, Observable, race, repeat, startWith, Subject, Subscription, switchMap, take, takeUntil, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'live-box',
@@ -28,11 +27,12 @@ export class LiveBoxComponent implements OnInit {
   dragStart$: Subject<number> = new Subject<number>()
   /** Emits the CdkDragMove event of the area that is being dragged */
   dragMove$: Subject<CdkDragMove> = new Subject<CdkDragMove>()
-  /** Emits the CdkDragEnd event of the area that has just been dragged */
+  /** Emits the CdkDragEnd event of the area that has just been dragged.
+   * 
+   * Note: after dragEnd, thanks to cdkDropList, the evend CdkDragDrop is emitted. This concludes
+   * the drag action and prevents clicks from being triggered when the mouse button is released
+   */
   dragEnd$: Subject<CdkDragEnd> = new Subject<CdkDragEnd>()
-  /** Emits the CdkDragDrop event when the area is dropped on the SVG. This is the event that concludes
-   * the drag action and prevents clicks from being triggered when the mouse button is released */
-  dragDrop$: Subject<any> = new Subject<any>()
   
 
   areas: IArea[] = []
@@ -113,10 +113,6 @@ export class LiveBoxComponent implements OnInit {
       this.areas.push(area)
       //console.log(area)
     }))
-    this._subscription.add(this._fileService.selectedInteractiveAreaChanged$.subscribe((index: number) => {
-      this.selectedAreaIndex = index
-      this._findFrames()
-    }))
     this._subscription.add(this._fileService.interactiveAreaRequested$.pipe(  //observe when the drawing mode is active:
       //when an area is requested, it means the user wants to draw something
       tap(() => { //therefore allow the draw-box component to capture the pointer events
@@ -161,7 +157,6 @@ export class LiveBoxComponent implements OnInit {
         tap(() => console.warn('Click')),
         tap((index: number) => {
           let area = this.areas[index]
-          this._fileService.selectInteractiveArea(index)
           console.log('Selected area')
 
           switch(area.type){
@@ -182,7 +177,7 @@ export class LiveBoxComponent implements OnInit {
               console.info(`${(area as IRect).w - area.x},${(area as IRect).h - area.y}`)
               break
           }
-          
+          this._fileService.selectInteractiveArea(index)
         }),
         take(1)
       ),
@@ -193,7 +188,6 @@ export class LiveBoxComponent implements OnInit {
           let area = this.areas[index]
           this.selectedAreaIndex = index
           this._fileService.selectInteractiveArea(index)
-          console.log('Selected area')
 
           this.point = Object.assign({}, {
             x: area.x,
@@ -230,8 +224,6 @@ export class LiveBoxComponent implements OnInit {
                 this.point!.y = area.y + event.distance.y
                 break
               case 'rectangle':
-                // this.point!.x = (area.x + (area as IRect).w)/2 + event.distance.x
-                // this.point!.y = (area.y + (area as IRect).h)/2 + event.distance.y
                 let centralInitial = {  //point at the center of the rectangle before dragStart
                   x: ((area as IRect).w + area.x)/2,
                   y: ((area as IRect).h + area.y)/2
@@ -251,21 +243,13 @@ export class LiveBoxComponent implements OnInit {
           }),
           takeUntil(this.dragEnd$.pipe(
             tap(() => console.info('Drag END')),
-            tap((event: any) => {
+            tap((event: CdkDragEnd) => {
               this.draggedAreaIndex = NaN
               let area = this.areas[this.selectedAreaIndex]
       
-              console.log(area)
-              console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
-              console.log(event)
-              
-
-              // this.point!.x = event.dropPoint.x
-              // this.point!.y = event.dropPoint.y
-              // console.log(event.source.element.nativeElement.style.transform)
-              
-              // area.x = event.dropPoint.x
-              // area.y = event.dropPoint.y
+              // console.log(area)
+              // console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
+              // console.log(event)
 
               switch(this.point!.type){
                 case 'circle':
@@ -297,12 +281,16 @@ export class LiveBoxComponent implements OnInit {
               }
       
               console.log(area)
-              // this._findFrames()
-      
-              // event.source.element.nativeElement.style = {}
-
-              this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)
             }),
+            withLatestFrom(this._fileService.viewportChanged$), //get the viewport
+            withLatestFrom(this._fileService.fileUploaded$),  //and the file
+            tap(([[dragEnd, viewport], file]) => {  //then compute the new position of the area, as it might have been dragged onto another tile
+              let area = this.areas[index]
+              area.pos.c = Math.floor(area.x/(file.width/(+viewport.cols > 0 ? +viewport.cols : 1)))
+              area.pos.r = Math.floor(area.y/(file.height/(+viewport.rows > 0 ? +viewport.rows : 1)))
+
+              this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)  //announce the changes to the dragged area
+            })
           ))
         ))
       )
@@ -310,7 +298,14 @@ export class LiveBoxComponent implements OnInit {
       repeat()
     ).subscribe())
 
-    this.dragDrop$.pipe(tap(() => console.log('Drag DROP'))).subscribe()
+    this._subscription.add( //observe the changes to selected and dragged areas so to update the animated tiles accordingly
+      merge(
+        this._fileService.selectedInteractiveAreaChanged$.pipe(
+          tap((index: number) => this.selectedAreaIndex = index)
+        ),
+        this._fileService.interactiveAreaDragged$ //this is triggered by this component, once dragEnd emitted
+      ).subscribe(() => this._findFrames())
+    )
   }
 
   ngOnDestroy(): void {

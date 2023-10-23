@@ -32,26 +32,28 @@
                 <path d='M-5 40H5M-5 0H5m30 0h10M35 40h10M15 20h10' stroke-linecap='square' stroke-width='7.5' stroke="rgba(255, 0, 0, 0.7)" fill='none'/>
             </pattern>
         </defs>
+        <!-- clones of the element that is being dragged -->
         <ng-container *ngIf="!(draggedAreaIndex | isNan) && point">
             <ng-container [ngSwitch]="point.type">
                 <circle *ngSwitchCase="'circle'" [attr.r]="(areas[draggedAreaIndex] | castShape).r" [attr.cx]="point.x" [attr.cy]="point.y" 
                     attr.fill="{{this.formArray!.controls[draggedAreaIndex].valid ? '#4db6ac' : this.formArray!.controls[draggedAreaIndex].pending ?
-                    'url(#pending-selected)' : 'url(#invalid-selected)'}}"
-                    opacity=".5" attr.stroke="{{!this.formArray!.controls[draggedAreaIndex].valid ? 'red' : '#00857c'}}" stroke-width="4"
+                    'url(#pending-selected)' : 'url(#invalid-selected)'}}" opacity=".5" 
+                    attr.stroke="{{!this.formArray!.controls[draggedAreaIndex].valid ? 'red' : '#00857c'}}" stroke-width="4"
+                    class="cdk-drag-dragging"
                 />
-
                 <rect *ngSwitchCase="'rectangle'"
                     attr.x="{{(point | castShape).w-(point | castShape).x < 0 ? (point | castShape).w : (point | castShape).x}}"
                     attr.y="{{(point | castShape).h-(point | castShape).y < 0 ? (point | castShape).h : (point | castShape).y}}"
                     attr.width="{{(point | castShape).w-(point | castShape).x < 0 ? (point | castShape).x-(point | castShape).w : (point | castShape).w-(point | castShape).x}}"
                     attr.height="{{(point | castShape).h - (point | castShape).y < 0 ? (point | castShape).y - (point | castShape).h : (point | castShape).h - (point | castShape).y}}"
                     attr.fill="{{this.formArray!.controls[draggedAreaIndex].valid ? '#4db6ac' : this.formArray!.controls[draggedAreaIndex].pending ?
-                    'url(#pending-selected)' : 'url(#invalid-selected)'}}"
-                    opacity=".5" attr.stroke="{{!this.formArray!.controls[draggedAreaIndex].valid ? 'red' : '#00857c'}}" stroke-width="4"
+                    'url(#pending-selected)' : 'url(#invalid-selected)'}}" opacity=".5"
+                    attr.stroke="{{!this.formArray!.controls[draggedAreaIndex].valid ? 'red' : '#00857c'}}" stroke-width="4"
+                    class="cdk-drag-dragging"
                 />
             </ng-container>
         </ng-container>
-        <!-- <circle *ngIf="!(selectedAreaIndex | isNan) && point" r="2" [attr.cx]="point.x" [attr.cy]="point.y" fill="#000000"></circle> -->
+        <!-- the elements drawn on the canvas -->
         <ng-container *ngFor="let area of areas; let i = index">
             <ng-container [ngSwitch]="area.type">
                 <circle *ngSwitchCase="'circle'"
@@ -64,7 +66,7 @@
                     opacity=".5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="clickArea$.next(i)" [class.draggable]="selectedAreaIndex === i"
                     cdkDrag
-                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragMoved)="dragMove$.next($event)" (cdkDragEnded)="dragEnd$.next($event)" (cdkDragDropped)="dragDrop$.next($event)" 
+                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragMoved)="dragMove$.next($event)" (cdkDragEnded)="dragEnd$.next($event)" 
                     />
                 <rect *ngSwitchCase="'rectangle'"
                     attr.x="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).w : (area | castShape).x}}"
@@ -77,10 +79,11 @@
                     opacity=".5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
                     (click)="clickArea$.next(i)" [class.draggable]="selectedAreaIndex === i"
                     cdkDrag
-                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragMoved)="dragMove$.next($event)" (cdkDragEnded)="dragEnd$.next($event)" (cdkDragDropped)="dragDrop$.next($event)" />
+                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragMoved)="dragMove$.next($event)" (cdkDragEnded)="dragEnd$.next($event)" />
             </ng-container>
         </ng-container>
-        <ng-container *ngIf="selectedUndoArea">
+        <!-- The undo area of the selected element (it disappears when the element is being dragged)-->
+        <ng-container *ngIf="selectedUndoArea && (draggedAreaIndex | isNan)">
             <ng-container [ngSwitch]="selectedUndoArea.type">
                 <circle *ngSwitchCase="'circle'"
                     attr.cx="{{selectedUndoArea.x}}"

@@ -1,9 +1,9 @@
 .draggable {
     cursor: grab;
+}
 
-    &.cdk-drag-dragging {
-        cursor: grabbing;
-    }
+.cdk-drag-dragging {
+    cursor: grabbing;
 }
 
 .cdk-drag-placeholder {
