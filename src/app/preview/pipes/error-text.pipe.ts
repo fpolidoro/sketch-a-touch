@@ -46,6 +46,12 @@ export class ErrorTextPipe implements PipeTransform {
           text = `End frame cannot be higher than rows number`
           break
       }
+    }else if(errors['invalidRange']){
+      switch(errors['invalidRange']){
+        case 'sameFrame':
+          text = `Start and end frames cannot be the same`
+          break
+      }
     }else if(errors['invalidDirection']){
       switch(errors['invalidDirection']){
         case 'noHorizontalSpace':

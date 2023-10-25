@@ -83,13 +83,14 @@
             </ng-container>
         </ng-container>
         <!-- The undo area of the selected element (it disappears when the element is being dragged)-->
-        <ng-container *ngIf="selectedUndoArea && (draggedAreaIndex | isNan)">
+        <ng-container *ngIf="selectedUndoArea && (draggedAreaIndex | isNan) && !this.formArray!.controls[selectedAreaIndex].hasError('invalidRange')">
             <ng-container [ngSwitch]="selectedUndoArea.type">
                 <circle *ngSwitchCase="'circle'"
                     attr.cx="{{selectedUndoArea.x}}"
                     attr.cy="{{selectedUndoArea.y}}"
                     attr.r="{{(selectedUndoArea | castShape).r}}"
-                    fill="#4db6ac"
+                    attr.fill="{{this.formArray!.controls[selectedAreaIndex].valid ? '#4db6ac' : this.formArray!.controls[selectedAreaIndex].pending ?
+                        'url(#pending-selected)' : 'url(#invalid-selected)'}}"
                     opacity="0.3" stroke="#00857c" attr.stroke-width="{{(selectedAreaIndex | isNan) ? 0 : 1}}"
                     mask="url(#myMask)"
                     />
@@ -98,7 +99,8 @@
                     attr.y="{{(selectedUndoArea | castShape).h-(selectedUndoArea | castShape).y < 0 ? (selectedUndoArea | castShape).h : (selectedUndoArea | castShape).y}}"
                     attr.width="{{(selectedUndoArea | castShape).w-(selectedUndoArea | castShape).x < 0 ? (selectedUndoArea | castShape).x-(selectedUndoArea | castShape).w : (selectedUndoArea | castShape).w-(selectedUndoArea | castShape).x}}"
                     attr.height="{{(selectedUndoArea | castShape).h - (selectedUndoArea | castShape).y < 0 ? (selectedUndoArea | castShape).y - (selectedUndoArea | castShape).h : (selectedUndoArea | castShape).h - (selectedUndoArea | castShape).y}}"
-                    fill="#4db6ac"
+                    attr.fill="{{this.formArray!.controls[selectedAreaIndex].valid ? '#4db6ac' : this.formArray!.controls[selectedAreaIndex].pending ?
+                        'url(#pending-selected)' : 'url(#invalid-selected)'}}"
                     opacity="0.3" stroke="#00857c" attr.stroke-width="{{(selectedAreaIndex | isNan) ? 0 : 1}}"
                     />
             </ng-container>

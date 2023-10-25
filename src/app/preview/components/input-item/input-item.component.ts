@@ -15,8 +15,8 @@ export class InputItemComponent implements OnInit, OnDestroy {
 
   form: FormGroup = new FormGroup({
     gesture: new FormControl(),
-    from: new FormControl(),
-    to: new FormControl(),
+    from: new FormControl<number>(NaN),
+    to: new FormControl<number>(NaN),
     direction: new FormControl(),
     allowUndo: new FormControl(true)
   })
@@ -94,6 +94,11 @@ export class InputItemComponent implements OnInit, OnDestroy {
             }else{
               result = Object.assign(result === null ? {} : result, { required: ['to'] })
             }
+          }
+
+          //the two frames are the same, so the animation would be a single frame, thus invalid
+          if(!isNaN(values.from) && !isNaN(values.to) &&  +values.from === +values.to){
+            result = Object.assign(result === null ? {} : result, { invalidRange: 'sameFrame' })
           }
           
           if(values.direction){

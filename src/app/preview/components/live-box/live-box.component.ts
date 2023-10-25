@@ -425,6 +425,7 @@ export class LiveBoxComponent implements OnInit {
         }
       }
     }else{
+      this.selectedUndoArea = undefined //hide the undo area as it might still be visible
       this.gridIndexes.forEach(gi => gi.is_frame = false)
     }
   }
