@@ -37,6 +37,9 @@ export class ErrorTextPipe implements PipeTransform {
         case 'frameOverflow:row':
           text = `Start frame cannot be higher than rows number`
           break
+        case 'areaNotOnStartTile':
+          text = `The area is not on the start tile`
+          break
       }
     }else if(errors['invalidEnd']){
       switch(errors['invalidEnd']){
