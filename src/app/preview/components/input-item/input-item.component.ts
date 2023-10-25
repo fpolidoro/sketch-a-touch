@@ -1,9 +1,9 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, ControlContainer, ControlValueAccessor, FormArray, FormControl, FormGroup, UntypedFormArray, ValidationErrors } from '@angular/forms';
+import { AbstractControl, ControlContainer, ControlValueAccessor, FormArray, FormControl, FormControlStatus, FormGroup, UntypedFormArray, ValidationErrors } from '@angular/forms';
 import { IItem, INestedItem, IViewport } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
-import { debounceTime, map, of, startWith, take, withLatestFrom } from 'rxjs';
+import { Subject, debounceTime, filter, map, of, startWith, take, takeUntil, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'input-item',
@@ -42,6 +42,8 @@ export class InputItemComponent implements OnInit, OnDestroy {
       { label: 'Pinch out', value: 'pinch-out' },
     ]}
   ]
+
+  private _destroy$: Subject<void> = new Subject<void>()
   
   constructor(private _parent: ControlContainer, private _fileService: FileService) { }
 
@@ -52,13 +54,46 @@ export class InputItemComponent implements OnInit, OnDestroy {
       (this._parent.control as FormArray).push(this.form) //add form to parent, which is an array of input-item
       this.form.addAsyncValidators(this._asyncFormValidator)
       this._fileService.viewportChanged$.pipe(  //observe changes on viewport size...
-        debounceTime(200)
+        debounceTime(200),
+        takeUntil(this._destroy$)
       ).subscribe(() => this.form.updateValueAndValidity()) //...and update the validity of the form
+
+      // this.form.statusChanges.pipe(
+      //   takeUntil(this._destroy$),
+      //   filter((status: FormControlStatus) => status === 'INVALID')
+      // ).subscribe(() => {
+      //   console.log(`reviewing validity of children`)
+      //   if(this.form.errors !== null){
+      //     console.log(Object.keys(this.form.controls))
+      //     for(let key in Object.keys(this.form.controls)){
+      //       if(this.form.controls[key] !== undefined) this.form.controls[key].setErrors(null, {emitEvent: false})
+      //     }
+
+      //     if(this.form.errors['invalidStart'] !== undefined || (this.form.errors['required'] !== undefined && this.form.errors['required'].includes('from') && this.form.dirty)){
+      //       this.form.controls['from'].setErrors({ invalid: true }, {emitEvent: false})
+      //     }
+      //     if(this.form.errors['invalidEnd'] !== undefined || (this.form.errors['required'] !== undefined && this.form.errors['required'].includes('to') && this.form.dirty)){
+      //       this.form.controls['to'].setErrors({ invalid: true }, {emitEvent: false})
+      //     }
+      //     if(this.form.errors['invalidRange'] !== undefined){
+      //       this.form.controls['from'].setErrors({ invalid: true }, {emitEvent: false})
+      //       this.form.controls['to'].setErrors({ invalid: true }, {emitEvent: false})
+      //     }
+      //     if(this.form.errors['invalidDirection'] !== undefined || (this.form.errors['required'] !== undefined && this.form.errors['required'].includes('direction') && this.form.dirty)){
+      //       this.form.controls['direction'].setErrors({ invalid: true }, {emitEvent: false})
+      //     }
+      //     if(this.form.errors['required'] !== undefined && this.form.errors['required'].includes('gesture') && this.form.dirty){
+      //       this.form.controls['gesture'].setErrors({ invalid: true }, {emitEvent: false})
+      //     }
+      //   }
+      // })
     }
   }
 
   ngOnDestroy(): void {
-    
+    //send the destroy signal to all the observers
+    this._destroy$.next()
+    this._destroy$.complete()
   }
 
   private _asyncFormValidator = (control: AbstractControl) => {
@@ -78,7 +113,7 @@ export class InputItemComponent implements OnInit, OnDestroy {
 
           if(+values.from < 0){
             result = Object.assign(result === null ? {} : result, { invalidStart: 'negativeFrame' })
-          }else if(values.from === null || values.from === undefined){
+          }else if(values.from === null || values.from === undefined || isNaN(values.from)){
             if(result !== null && result['required'] && result['required'].length > 0){
               result['required'].push('from')
             }else{
@@ -88,7 +123,7 @@ export class InputItemComponent implements OnInit, OnDestroy {
 
           if(+values.to < 0){
             result = Object.assign(result === null ? {} : result, { invalidEnd: 'negativeFrame' })
-          }else if(values.to === null || values.to === undefined){
+          }else if(values.to === null || values.to === undefined || isNaN(values.to)){
             if(result !== null && result['required'] && result['required'].length > 0){
               result['required'].push('to')
             }else{

@@ -350,7 +350,7 @@ export class LiveBoxComponent implements OnInit {
           }else{
             if(direction.label === 'Column'){ //...and it is a column (i.e. vertical direction)...
               if(area.pos.c === gi.c){  //...and the current frame is on the column which the selected interactive area belongs to...
-                gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.r && +to <= gi.r) || (+from <= +to && +from <= gi.r && +to >= gi.r))
+                gi.is_frame = from !== undefined && from !== null && !isNaN(from) && to !== undefined && to !== null && !isNaN(to) && ((+from > +to && +from >= gi.r && +to <= gi.r) || (+from <= +to && +from <= gi.r && +to >= gi.r))
                 //set the frame as "belongs to animation" if its index is part of the range of rows identified by the from-to fields
                 //console.log(`[${gi.c},${gi.r}] f: ${+from} ${+from <= +to ? '<=' : '>'} t: ${+to}, tile.r: ${gi.r}\nf>=r && t<=r: ${+from > +to && +from <= +to && +from >= gi.r && +to <= gi.r}\nf<=r && t>=r: ${+from <= +to && +from <= gi.r && +to >= gi.r}\n=    ${gi.is_frame}`)
                 if(gi.is_frame){
@@ -362,7 +362,7 @@ export class LiveBoxComponent implements OnInit {
               }
             }else if(direction.label === 'Row'){
               if(area.pos.r === gi.r){
-                gi.is_frame = from !== undefined && from !== null && to !== undefined && to !== null && ((+from > +to && +from >= gi.c && +to <= gi.c) || (+from <= +to && +from <= gi.c && +to >= gi.c))
+                gi.is_frame = from !== undefined && from !== null && !isNaN(from) && to !== undefined && to !== null && !isNaN(to) && ((+from > +to && +from >= gi.c && +to <= gi.c) || (+from <= +to && +from <= gi.c && +to >= gi.c))
                 if(gi.is_frame){
                   this.arrow = +from > +to ? "arrow_back" : "arrow_forward"
                   maxTileIndex = Math.max(maxTileIndex, gi.c)
@@ -380,7 +380,6 @@ export class LiveBoxComponent implements OnInit {
         let y: number
         let w: number = 0
         let h: number = 0
-        
         
         if(direction?.label === 'Row'){
           pos = {
@@ -402,8 +401,8 @@ export class LiveBoxComponent implements OnInit {
           h = ((area as IRect).h ?? 0) + (to-from)*this.viewportSize.height
         }
 
-
-        this.selectedUndoArea = hasUndo && direction && (direction.label=== 'Row' || direction.label=== 'Column') ? {
+        //create the area only if the direction is defined, the from and to fields are defined and valid (i.e. not NaN)
+        this.selectedUndoArea = hasUndo && direction && (direction.label=== 'Row' || direction.label=== 'Column') && !isNaN(from) && !isNaN(to) ? {
           pos: pos!,
           type: area.type,
           x: x!,
