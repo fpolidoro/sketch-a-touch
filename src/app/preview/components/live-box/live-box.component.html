@@ -1,6 +1,6 @@
 <!-- <span *ngIf="point">{{point.x}}, {{point.y}}</span>
 <span *ngIf="!(selectedAreaIndex | isNan)">{{areas[selectedAreaIndex].x}}, {{areas[selectedAreaIndex].y}}</span> -->
-<div *ngIf="image$ | async" style="position: relative; overflow-x: hidden; overflow-y: auto;">
+<div *ngIf="image$ | async" style="position: relative; overflow-x: hidden; overflow-y: auto; box-sizing: border-box;" style.maxHeight="{{originalSize !== undefined ? originalSize.height+5 : 0}}px">
     <img [src]="image$ | async">
     <svg #canvas attr.width="{{(originalSize !== undefined ? originalSize.width : 0)}}"
         attr.height="{{(originalSize !== undefined ? originalSize.height : 0)}}" class="canvas-box" cdkDropList>
