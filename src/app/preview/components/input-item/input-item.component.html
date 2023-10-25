@@ -13,7 +13,7 @@
                 </div>
                 <!-- <span style="font-size: 8px;">{{area?.type}}</span> -->
             </div>
-            <mat-form-field appearance="outline" class="select-box" [class.mat-form-field-invalid]="form.hasError('invalidGesture') && !form.hasError('required')">
+            <mat-form-field appearance="outline" class="select-box" [class.mat-form-field-invalid]="form.statusChanges | async | errorDetector: form : 'gesture' ">
                 <mat-label>Gesture</mat-label>
                 <mat-select formControlName="gesture">
                     <ng-container *ngFor="let gesture of gestures">
@@ -26,7 +26,7 @@
                     </ng-container>
                 </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="select-icon-box" [class.mat-form-field-invalid]="form.hasError('invalidDirection') && !form.hasError('required')">
+            <mat-form-field appearance="outline" class="select-icon-box" [class.mat-form-field-invalid]="form.statusChanges | async | errorDetector: form : 'direction' ">
                 <mat-label>Slide direction</mat-label>
                 <mat-select #selectDirection formControlName="direction">
                     <mat-select-trigger>
@@ -37,13 +37,13 @@
                     </mat-option>
                 </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="(form.hasError('invalidStart') || form.hasError('invalidRange')) && !form.hasError('required')"
+            <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.statusChanges | async | errorDetector: form : 'from' "
                 matTooltip="The first frame of the animation"
                 matTooltipShowDelay="500">
                 <mat-label>Start<ng-container *ngIf="selectDirection.value"> {{selectDirection.value.value === 'row' ? 'col' : 'row'}}</ng-container></mat-label>
                 <input matInput type="number" formControlName="from" min="0" max="10000">
             </mat-form-field>
-            <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="(form.hasError('invalidEnd') || form.hasError('invalidRange')) && !form.hasError('required')"
+            <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.statusChanges | async | errorDetector: form : 'to' "
                 matTooltip="The last frame of the animation"
                 matTooltipShowDelay="500">
                 <mat-label>End<ng-container *ngIf="selectDirection.value"> {{selectDirection.value.value === 'row' ? 'col' : 'row'}}</ng-container></mat-label>

@@ -7,6 +7,10 @@ import { ValidationErrors } from '@angular/forms';
 })
 export class ErrorTextPipe implements PipeTransform {
 
+  /** Print the text corresponding to the priority list defined by the body of this function
+   * @param errors The errors object from the form control
+   * @returns The text to be displayed
+   */
   transform(errors: ValidationErrors): string {
     let text: string = ''
 

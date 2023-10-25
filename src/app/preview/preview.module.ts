@@ -14,6 +14,7 @@ import { ErrorTextPipe } from './pipes/error-text.pipe';
 import { GuideDialogComponent } from './components/guide-dialog/guide-dialog.component';
 import { CodeBoxComponent } from './components/code-box/code-box.component';
 import { SnippetBoxComponent } from './components/snippet-box/snippet-box.component';
+import { ErrorDetectorPipe } from './pipes/error-detector.pipe';
 
 @NgModule({
   declarations: [
@@ -26,6 +27,7 @@ import { SnippetBoxComponent } from './components/snippet-box/snippet-box.compon
     GuideDialogComponent,
     CodeBoxComponent,
     SnippetBoxComponent,
+    ErrorDetectorPipe,
   ],
   imports: [
     CommonModule,
@@ -41,6 +43,7 @@ import { SnippetBoxComponent } from './components/snippet-box/snippet-box.compon
     CodeBoxComponent,
     CastShapePipe,
     ErrorTextPipe,
+    ErrorDetectorPipe,
   ]
 })
 export class PreviewModule { }
