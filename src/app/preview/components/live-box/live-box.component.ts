@@ -246,6 +246,12 @@ export class LiveBoxComponent implements OnInit {
             tap((event: CdkDragEnd) => {
               this.draggedAreaIndex = NaN
               let area = this.areas[this.selectedAreaIndex]
+
+              //check that the drop point is within the viewport bounds, otherwise set it to the closest point on the edge
+              let dropPoint = Object.assign({}, {
+                x: event.dropPoint.x < 0 ? 0 : event.dropPoint.x > this.originalSize!.width ? this.originalSize!.width : event.dropPoint.x,
+                y: event.dropPoint.y < 0 ? 0 : event.dropPoint.y > this.originalSize!.height ? this.originalSize!.height : event.dropPoint.y
+              })
       
               // console.log(area)
               // console.log(`${this.selectedAreaIndex}, ${event.dropPoint.x}, ${event.dropPoint.y}`)
@@ -253,12 +259,12 @@ export class LiveBoxComponent implements OnInit {
 
               switch(this.point!.type){
                 case 'circle':
-                  this.point!.x = event.dropPoint.x
-                  this.point!.y = event.dropPoint.y
+                  this.point!.x = dropPoint.x
+                  this.point!.y = dropPoint.y
                   console.log(event.dropPoint)
                   
-                  area.x = event.dropPoint.x
-                  area.y = event.dropPoint.y
+                  area.x = dropPoint.x
+                  area.y = dropPoint.y
                   break
                 case 'rectangle':
                   let centralInitial = {  //point at the center of the rectangle before dragStart
@@ -270,10 +276,10 @@ export class LiveBoxComponent implements OnInit {
                     y: Math.abs((area as IRect).h - area.y)
                   };
 
-                  (area as IRect).w = event.dropPoint.x + offset.x/2;
-                  (area as IRect).h = event.dropPoint.y + offset.y/2
-                  area.x = area.x + event.dropPoint.x - centralInitial.x,
-                  area.y = area.y + event.dropPoint.y - centralInitial.y
+                  (area as IRect).w = dropPoint.x + offset.x/2;
+                  (area as IRect).h = dropPoint.y + offset.y/2
+                  area.x = area.x + dropPoint.x - centralInitial.x,
+                  area.y = area.y + dropPoint.y - centralInitial.y
 
                   console.log(`(${area.x}, ${area.y}) ${(area as IRect).w} x ${(area as IRect).h}\n(${this.point!.x}, ${this.point!.y})`)
                   console.info(`${(area as IRect).w - area.x},${(area as IRect).h - area.y}`)
