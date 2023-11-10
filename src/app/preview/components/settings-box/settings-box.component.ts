@@ -41,6 +41,8 @@ export class SettingsBoxComponent implements OnInit {
 
   action$ = this._fileService.interactiveAreaActionChanged$.pipe(startWith(null))
 
+  enableAddArea$: Subject<boolean> = new Subject<boolean>()
+
   private _drawerStatus: boolean = false
   private _subscriptions?: Subscription[]
   private _areasForm: FormArray = this.settings.controls['areas'] as FormArray
@@ -52,6 +54,7 @@ export class SettingsBoxComponent implements OnInit {
       cols: 1,
       rows: 1
     })
+    this.settings.controls['viewport'].disable()
 
     this._subscriptions = [
       this.selectFile$.pipe(
@@ -67,6 +70,7 @@ export class SettingsBoxComponent implements OnInit {
               tap((result: IImageFile) => {
                 this.currentFile = result
                 this._fileService.uploadFile(result)  //notify live-box
+                this.settings.controls['viewport'].enable()  //enable the viewport controls
                 this.settings.controls['viewport'].patchValue({ //reset columns and rows
                   cols: 1,
                   rows: 1
