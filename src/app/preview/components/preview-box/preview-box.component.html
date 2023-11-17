@@ -1,0 +1,12 @@
+<div>{{viewportSize.width}}x{{viewportSize.height}}</div>
+<div>aspect ratio: {{viewportSize.height/viewportSize.width}}</div>
+<div>{{panelWidth}}x{{panelHeight}}</div>
+<div style="display: flex; justify-content: center; align-items: center; border: 1px solid black"
+    style.max-width="{{viewportSize.width}}px"
+    style.max-height="{{viewportSize.height}}px"
+    style.width="{{viewportSize.width}}px"
+    style.height="{{viewportSize.height}}px">
+    <button mat-fab *ngIf="viewportSize.width && viewportSize.height">
+        <mat-icon>play_arrow</mat-icon>
+    </button>
+</div>
