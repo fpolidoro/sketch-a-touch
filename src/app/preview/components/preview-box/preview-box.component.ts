@@ -1,7 +1,8 @@
 import { Component, HostListener, OnInit } from '@angular/core';
-import { ISize, IViewport } from '@preview/interfaces/files';
-import { FileService } from '@preview/services/file.service';
-import { Observable, Subject, combineLatest, merge, tap } from 'rxjs';
+import { IImageFile, ISize } from '@preview/interfaces/files';
+import { IArea, ITile } from '@preview/interfaces/shapes';
+import { FileService, IAreaDragged } from '@preview/services/file.service';
+import { Subject, combineLatest, filter, merge, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'preview-box',
@@ -11,37 +12,53 @@ import { Observable, Subject, combineLatest, merge, tap } from 'rxjs';
 export class PreviewBoxComponent implements OnInit {
 
   viewportSize: ISize = { width: 0, height: 0 }
+  tile: ITile = { c: -1, r: -1 }
   panelHeight: number = 0
   panelWidth: number = 0
-
+  image?: string
+  
+  private _areas: IArea[] = []
   private _windowSize$: Subject<ISize> = new Subject<ISize>()
 
   constructor(private _fileService: FileService) { }
 
   ngOnInit(): void {
     combineLatest([
-      this._fileService.fileUploaded$,
+      this._fileService.fileUploaded$.pipe(
+        tap((image: IImageFile) => this.image = image.base64)
+      ),
       this._fileService.viewportChanged$,
       this._windowSize$.pipe(
         tap((size: ISize) => {
-          let aspectRatio = size.height/size.width
           this.panelHeight = size.height
           this.panelWidth = (size.width*0.2) - 24
-
-          console.log(`${this.panelWidth}x${this.panelHeight}, ar: ${aspectRatio}`)
         })
       )
     ]).subscribe(([file, viewport, size]) => {
       let w = file.width/(viewport.cols > 0 ? viewport.cols : 1)
       let h = file.height/(viewport.rows > 0 ? viewport.rows : 1)
-      // if(w > this.panelWidth){ //the width of the viewport is larger than panel's max-width
-
-      // }
-      this.viewportSize = {
-        width: Math.min(w, this.panelWidth),
-        height: w*file.height/file.width
+      if(w > this.panelWidth){ //the width of the viewport is larger than panel's max-width
+        this.viewportSize = {
+          width: this.panelWidth, //...the preview must take panelWidth
+          height: h*this.panelWidth/w //...and compute its height so to maintain the aspect ratio
+        }
+      }else{  //the viewport is smaller than the panel
+        this.viewportSize = {
+          width: w, //...use the width of the viewport
+          height: h
+        }
       }
     })
+
+    merge(  //listen to the changes on the list of interactive areas so to find out which is currently selected
+      this._fileService.interactiveAreaAnnounced$.pipe(tap((area: IArea) => this._areas.push(area))),
+      this._fileService.interactiveAreaDragged$.pipe(tap((dragged: IAreaDragged) => this._areas[dragged.index] = dragged.area)),
+      this._fileService.interactiveAreaDeleted$.pipe(tap((toDelete: number) => this._areas.splice(toDelete, 1))),
+      this._fileService.selectedInteractiveAreaChanged$.pipe( //the selected area has changed, update the tile so that the preview shows the right starting tile for the animation
+        tap((selectedArea: number) => console.log(`Selected area: ${selectedArea}`)),
+        filter((selectedArea: number) => !isNaN(selectedArea)),
+        tap((selectedArea: number) => this.tile = this._areas[selectedArea].pos))
+    ).subscribe()
     
     this.onResize(null)
   }
