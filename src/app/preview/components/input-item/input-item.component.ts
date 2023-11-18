@@ -3,7 +3,7 @@ import { AbstractControl, ControlContainer, FormArray, FormControl, FormGroup, V
 import { IItem, INestedItem } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
-import { Subject, debounceTime, filter, map, merge, take, takeUntil, withLatestFrom } from 'rxjs';
+import { Subject, debounceTime, defer, filter, iif, map, merge, take, takeUntil, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'input-item',
@@ -52,6 +52,7 @@ export class InputItemComponent implements OnInit, OnDestroy {
       throw new Error(`Cannot initialize input-item component because @Input area is undefined`)
     }else{
       (this._parent.control as FormArray).push(this.form) //add form to parent, which is an array of input-item
+      this.form.controls['from'].disable()  //disable it because it is automatically filled by direction
       this.form.addAsyncValidators(this._asyncFormValidator)
       merge(
         this._fileService.viewportChanged$,
@@ -73,6 +74,20 @@ export class InputItemComponent implements OnInit, OnDestroy {
 
   private _asyncFormValidator = (control: AbstractControl) => {
     return control.valueChanges.pipe(
+      tap((values) => { //before validation...
+        values.from = this.form.controls['from'].value  //add the from field to the values to be validated, because, being from disabled, its value is not included in values
+        let direction = values.direction
+        if(direction !== null && direction !== undefined){  //if direction has changed, update the value of from so that it displays the index of the tile where the area is
+          let from = this.form.controls['from'] as FormControl
+          if(direction.value === 'row'){
+             //the event is not emitted because it would trigger the validation again. OnlySelf is to prevent the parent group from being told that from changed. If onlySelf were false,
+             //the validation would stop
+            from.setValue(this.area?.pos.c, { emitEvent: false, onlySelf: true })
+          }else if(direction.value === 'col'){
+            from.setValue(this.area?.pos.r, { emitEvent: false, onlySelf: true })
+          }
+        }
+      }),
       withLatestFrom(this._fileService.viewportChanged$),
       debounceTime(100),
       take(1),
@@ -89,11 +104,11 @@ export class InputItemComponent implements OnInit, OnDestroy {
           if(+values.from < 0){
             result = Object.assign(result === null ? {} : result, { invalidStart: 'negativeFrame' })
           }else if(values.from === null || values.from === undefined || isNaN(values.from)){
-            if(result !== null && result['required'] && result['required'].length > 0){
+            /*if(result !== null && result['required'] && result['required'].length > 0){
               result['required'].push('from')
             }else{
               result = Object.assign(result === null ? {} : result, { required: ['from'] })
-            }
+            }*/
           }
 
           if(+values.to < 0){
@@ -150,7 +165,7 @@ export class InputItemComponent implements OnInit, OnDestroy {
           }
         }
 
-        console.log(result)
+        //console.log(result)
         return result
       })
     )

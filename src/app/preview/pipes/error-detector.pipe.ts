@@ -20,9 +20,9 @@ export class ErrorDetectorPipe implements PipeTransform {
         if(Object.keys(control.controls).includes(formControlName)){
           if(control.hasError('required') && control.errors['required'].includes(formControlName) && control.dirty){
             shouldSetRedColor = true
-          }else if(formControlName === 'from' && (control.hasError('invalidStart') || control.hasError('invalidRange'))){
+          }/*else if(formControlName === 'from' && (control.hasError('invalidStart') || control.hasError('invalidRange'))){
             shouldSetRedColor = true
-          }else if(formControlName === 'to' && control.hasError('invalidEnd')){
+          }*/else if(formControlName === 'to' && (control.hasError('invalidEnd') || control.hasError('invalidRange'))){
             shouldSetRedColor = true
           }else if(formControlName === 'direction' && control.hasError('invalidDirection')){
             shouldSetRedColor = true

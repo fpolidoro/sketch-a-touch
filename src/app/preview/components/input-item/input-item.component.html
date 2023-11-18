@@ -37,7 +37,7 @@
                     </mat-option>
                 </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.statusChanges | async | errorDetector: form : 'from' "
+            <mat-form-field appearance="outline" class="number-box hide-arrows" [class.mat-form-field-invalid]="form.statusChanges | async | errorDetector: form : 'from' "
                 matTooltip="The first frame of the animation"
                 matTooltipShowDelay="500">
                 <mat-label>Start<ng-container *ngIf="selectDirection.value"> {{selectDirection.value.value === 'row' ? 'col' : 'row'}}</ng-container></mat-label>

@@ -295,6 +295,10 @@ export class LiveBoxComponent implements OnInit {
               area.pos.c = Math.floor(area.x/(file.width/(+viewport.cols > 0 ? +viewport.cols : 1)))
               area.pos.r = Math.floor(area.y/(file.height/(+viewport.rows > 0 ? +viewport.rows : 1)))
 
+              //update the tile of the area to ensure it is within the number of rows and colums of the viewport
+              if(area.pos.c >= viewport.cols) area.pos.c = viewport.cols-1
+              if(area.pos.r >= viewport.rows) area.pos.r = viewport.rows-1
+
               this._fileService.interactiveAreaDragEnded(area, this.selectedAreaIndex)  //announce the changes to the dragged area
             })
           ))
