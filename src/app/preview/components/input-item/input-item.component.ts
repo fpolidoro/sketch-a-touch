@@ -95,7 +95,7 @@ export class InputItemComponent implements OnInit, OnDestroy {
         let result: ValidationErrors|null = null
         console.log(`validating form`)
         if(Object.keys(values).every(k => values[k] === null || values[k] === undefined)){
-          result = { required: true }
+          result = { required: 'area' }
         }else{
           if(!values.gesture){
             result = { required: ['gesture'] }

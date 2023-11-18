@@ -16,8 +16,12 @@ export class ErrorTextPipe implements PipeTransform {
 
     if(errors['required']){
       let required = errors['required']
-      if(typeof required === 'boolean'){
-        text = `Fill in the fields to set up the interactive area`
+      if(typeof required === 'string'){
+        if(required === 'area'){
+          text = `Fill in the fields to set up the interactive area`
+        }else if(required === 'viewport'){
+          text = `Fill in the fields to set up the grid`
+        }
       }else{
         required = required as string[]
         if(required.length > 1){
@@ -26,6 +30,26 @@ export class ErrorTextPipe implements PipeTransform {
           text = `${required[0]} field is empty`
         }
       }      
+    }else if(errors['invalidViewport']){
+      text = `The grid must have at least two cells`
+    }else if(errors['invalidCols']){
+      switch(errors['invalidCols']){
+        case 'tooFew':
+          text = `Columns cannot be less than 1`
+          break
+        case 'tooMany':
+          text = `Columns are too many`
+          break
+      }
+    }else if(errors['invalidRows']){
+      switch(errors['invalidRows']){
+        case 'tooFew':
+          text = `Rows cannot be less than 1`
+          break
+        case 'tooMany':
+          text = `Rows are too many`
+          break
+      }
     }else if(errors['invalidStart']){
       switch(errors['invalidStart']){
         case 'negativeFrame':

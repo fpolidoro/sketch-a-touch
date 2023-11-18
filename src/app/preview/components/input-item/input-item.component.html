@@ -41,13 +41,13 @@
                 matTooltip="The first frame of the animation"
                 matTooltipShowDelay="500">
                 <mat-label>Start<ng-container *ngIf="selectDirection.value"> {{selectDirection.value.value === 'row' ? 'col' : 'row'}}</ng-container></mat-label>
-                <input matInput type="number" formControlName="from" min="0" max="10000">
+                <input matInput type="number" formControlName="from">
             </mat-form-field>
             <mat-form-field appearance="outline" class="number-box" [class.mat-form-field-invalid]="form.statusChanges | async | errorDetector: form : 'to' "
                 matTooltip="The last frame of the animation"
                 matTooltipShowDelay="500">
                 <mat-label>End<ng-container *ngIf="selectDirection.value"> {{selectDirection.value.value === 'row' ? 'col' : 'row'}}</ng-container></mat-label>
-                <input matInput type="number" formControlName="to" min="0" max="10000">
+                <input matInput type="number" formControlName="to">
             </mat-form-field>
         </div>
         <mat-hint *ngIf="selectDirection.value" style="font-size: 12px; line-height: 15px;">Animating {{selectDirection.value?.label === 'Row' ? 'columns' : 'rows'}} along {{selectDirection.value?.label === 'Row' ? 'row' : 'column'}} {{selectDirection.value?.label === 'Row' ? area?.pos?.r : area?.pos?.c}}</mat-hint>
@@ -57,4 +57,4 @@
         >Use this area also for the undo action</mat-checkbox>
     </div>
 </div>
-<mat-error *ngIf="this.form.errors !== null">{{this.form.errors | errorText}}</mat-error>
+<mat-error *ngIf="form.errors !== null">{{form.errors | errorText}}</mat-error>

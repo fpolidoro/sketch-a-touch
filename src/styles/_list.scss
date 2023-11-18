@@ -11,6 +11,11 @@ settings-box {
         line-height: 24px;
         gap: 16px;
     }
+
+    &.mat-list-item-disabled {
+        color: #c1c1c1;
+        background-color: transparent;
+    }
 }
 
 .mat-list-single-selected-option .shape-box {

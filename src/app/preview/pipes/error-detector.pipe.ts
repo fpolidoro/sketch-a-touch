@@ -26,6 +26,10 @@ export class ErrorDetectorPipe implements PipeTransform {
             shouldSetRedColor = true
           }else if(formControlName === 'direction' && control.hasError('invalidDirection')){
             shouldSetRedColor = true
+          }else if(formControlName === 'rows' && control.hasError('invalidRows') || control.hasError('invalidViewport')){
+            shouldSetRedColor = true
+          }else if(formControlName === 'cols' && control.hasError('invalidCols') || control.hasError('invalidViewport')){
+            shouldSetRedColor = true
           }
         }
       }
