@@ -1,14 +1,16 @@
-<div style="display: flex; justify-content: center; align-items: center; border: 1px solid black"
+<div *ngIf="image" style="display: flex; justify-content: center; align-items: center; border: 1px solid black; background-position: 0 0;"
     style.max-width="{{viewportSize.width}}px"
     style.max-height="{{viewportSize.height}}px"
     style.width="{{viewportSize.width}}px"
-    style.height="{{viewportSize.height}}px">
+    style.height="{{viewportSize.height}}px"
+    [ngStyle]="{'background-image':'url('+ image?.base64 +')'}"
+    style.background-size="{{originalViewport.rows*viewportSize.width}}px {{originalViewport.cols*viewportSize.height}}px">
     <button mat-fab *ngIf="viewportSize.width && viewportSize.height">
         <mat-icon>play_arrow</mat-icon>
     </button>
-    <img [src]="image" style="object-fit: none;" style.width="{{viewportSize.width}}px"
+    <!-- <img [src]="image?.base64" attr.width="{{image?.width}}" attr.height="{{image?.height}}" style="object-fit: none;" style.width="{{viewportSize.width}}px"
     style.height="{{viewportSize.height}}px"
-    style.object-position="{{-viewportSize.width*tile.c}}px {{-viewportSize.height*tile.r}}px">
+    style.object-position="{{-viewportSize.width*tile.c}}px {{-viewportSize.height*tile.r}}px"> -->
 </div>
 
 <div>{{viewportSize.width}}x{{viewportSize.height}}</div>

@@ -1,8 +1,8 @@
 import { Component, HostListener, OnInit } from '@angular/core';
-import { IImageFile, ISize } from '@preview/interfaces/files';
+import { IImageFile, ISize, IViewport } from '@preview/interfaces/files';
 import { IArea, ITile } from '@preview/interfaces/shapes';
 import { FileService, IAreaDragged } from '@preview/services/file.service';
-import { Subject, combineLatest, filter, merge, switchMap, tap } from 'rxjs';
+import { Subject, combineLatest, filter, merge, tap } from 'rxjs';
 
 @Component({
   selector: 'preview-box',
@@ -15,7 +15,9 @@ export class PreviewBoxComponent implements OnInit {
   tile: ITile = { c: -1, r: -1 }
   panelHeight: number = 0
   panelWidth: number = 0
-  image?: string
+  reductionPerc: number = 1.0
+  image?: IImageFile
+  originalViewport: IViewport = { cols: 0, rows: 0}
   
   private _areas: IArea[] = []
   private _windowSize$: Subject<ISize> = new Subject<ISize>()
@@ -25,7 +27,9 @@ export class PreviewBoxComponent implements OnInit {
   ngOnInit(): void {
     combineLatest([
       this._fileService.fileUploaded$.pipe(
-        tap((image: IImageFile) => this.image = image.base64)
+        tap((image: IImageFile) => {
+          this.image = image
+        })
       ),
       this._fileService.viewportChanged$,
       this._windowSize$.pipe(
@@ -35,6 +39,7 @@ export class PreviewBoxComponent implements OnInit {
         })
       )
     ]).subscribe(([file, viewport, size]) => {
+      this.originalViewport = viewport
       let w = file.width/(viewport.cols > 0 ? viewport.cols : 1)
       let h = file.height/(viewport.rows > 0 ? viewport.rows : 1)
       if(w > this.panelWidth){ //the width of the viewport is larger than panel's max-width
@@ -42,11 +47,13 @@ export class PreviewBoxComponent implements OnInit {
           width: this.panelWidth, //...the preview must take panelWidth
           height: h*this.panelWidth/w //...and compute its height so to maintain the aspect ratio
         }
+        this.reductionPerc = this.panelWidth/file.width
       }else{  //the viewport is smaller than the panel
         this.viewportSize = {
           width: w, //...use the width of the viewport
           height: h
         }
+        this.reductionPerc = w/file.width
       }
     })
 
