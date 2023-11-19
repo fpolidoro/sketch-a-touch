@@ -23,13 +23,13 @@
 </mat-slider>
 <!-- <span>{{(playPosition$ | async).value}}</span> -->
 <div class="animation-control-box">
-    <mat-button-toggle value="left" aria-label="Preview undo animation" matTooltip="Toggle undo animation preview">
+    <mat-button-toggle value="left" aria-label="Preview undo animation" matTooltip="Toggle undo animation preview" [disabled]="selectedAreaForm === undefined || !selectedAreaForm.controls['allowUndo'].value">
         <mat-icon>undo</mat-icon>
     </mat-button-toggle>
     <button mat-fab *ngIf="viewportSize.width && viewportSize.height" color="primary" (click)="playPause$.next()">
         <mat-icon>{{isPlaying ? 'pause' : 'play_arrow'}}</mat-icon>
     </button>
-    <button mat-icon-button>
+    <button mat-icon-button (click)="stop$.next()">
         <mat-icon>stop</mat-icon>
     </button>
 </div>

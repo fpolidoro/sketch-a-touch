@@ -3,7 +3,7 @@ import { Form, FormArray, FormControl, FormGroup } from '@angular/forms';
 import { IImageFile, ISize, IViewport } from '@preview/interfaces/files';
 import { IArea, ITile } from '@preview/interfaces/shapes';
 import { FileService, IAreaDragged } from '@preview/services/file.service';
-import { BehaviorSubject, Observable, Subject, combineLatest, filter, interval, map, merge, startWith, switchMap, take, takeUntil, tap, withLatestFrom } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, Subject, combineLatest, debounce, debounceTime, filter, finalize, interval, map, merge, race, startWith, switchMap, take, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'preview-box',
@@ -22,10 +22,11 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
   selectedAreaForm?: FormGroup
   
   playPause$: Subject<void> = new Subject<void>()
+  stop$: Subject<void> = new Subject<void>()
   isPlaying: boolean = false
 
   /** Keeps track the current position of the slider during slider drag (valueChanges in a FormControl would only update when the user releases the slider) */
-  playPosition$: Subject<number> = new Subject<number>()
+  playPosition$: BehaviorSubject<number> = new BehaviorSubject<number>(0)
   /** Observable to update the `background-position` CSS style of the preview, so that it animates according to the position of the slider*/
   backgroundPosition$: Observable<ITile> = this.playPosition$.pipe(
     withLatestFrom(this._fileService.selectedInteractiveAreaChanged$.pipe(
@@ -94,7 +95,6 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
       this._fileService.interactiveAreaDragged$.pipe(tap((dragged: IAreaDragged) => this._areas[dragged.index] = dragged.area)),
       this._fileService.interactiveAreaDeleted$.pipe(tap((toDelete: number) => this._areas.splice(toDelete, 1))),
       this._fileService.selectedInteractiveAreaChanged$.pipe( //the selected area has changed, update the tile so that the preview shows the right starting tile for the animation
-        tap((selectedArea: number) => console.log(`Selected area: ${selectedArea}`)),
         filter((selectedArea: number) => !isNaN(selectedArea)),
         switchMap((selectedArea: number) => this._fileService.formArray$.pipe(  //get the form corresponding to the currently selected area: its values are needed to set up the slider
           tap((formArray: FormArray) => {
@@ -104,17 +104,36 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
           map((formArray: FormArray) => formArray.controls[selectedArea] as FormGroup),
           switchMap((formGroup: FormGroup) => this.playPause$.pipe( //listen to the play/pause button
             tap(() => this.isPlaying = !this.isPlaying),  //toggle the icon for the template
-            tap(() => console.log(`play ${1+Math.abs(formGroup.controls['to'].value-formGroup.controls['from'].value)} frames`)),
+            filter(() => this.isPlaying), //play the animation only if we clicked the play icon (and not the pause one)
             switchMap(() => interval(150).pipe( //emit a value every 150ms that updates the slider and emits a value to update the background-position
-              tap((position: number) => {
-                console.log(`Emitting ${position}`)
-                this.playPosition$.next(position)
+              withLatestFrom(this.playPosition$.pipe(map((position: number) => isNaN(position) ? 0 : position))),
+              map(([_, position]) => {
+                let pos = position+1
+                //update the slider position (and the background) only if we have not reached the end frame yet 
+                if(pos < Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value)){
+                  this.playPosition$.next(pos)
+                }else{  //we reached the end frame, so reset the slider to 0 to replay the animation (this is for when the slider is on the last frame and we click play again)
+                  pos = 0
+                  this.playPosition$.next(0)
+                }
+
+                return pos
               }),
-              take(Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value)),  //take until the number of frames to play is reached
+              takeUntil(race(this.stop$, this.playPause$)), //stop the interval when the stop button is pressed or...
+              takeWhile((position: number) => position < Math.abs(formGroup.controls['to'].value-formGroup.controls['from'].value), true),  //...take until the number of frames to play is reached
+              filter((position: number) => position === Math.abs(formGroup.controls['to'].value-formGroup.controls['from'].value)), //if we reached the end frame...
+              tap(() => this.isPlaying = false) //...reset the play button to display the arrow instead of pause
             )),
           ))
         ))
       ),
+      this.stop$.pipe(
+        debounceTime(100),
+        tap(() => {
+          this.playPosition$.next(0)
+          this.isPlaying = false
+        })
+      )
     ).pipe(
       takeUntil(this._onDestroy$)
     ).subscribe()
