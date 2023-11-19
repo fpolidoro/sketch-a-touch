@@ -1,18 +1,40 @@
+<h1>Animation preview</h1>
 <div *ngIf="image" style="display: flex; justify-content: center; align-items: center; border: 1px solid black; background-position: 0 0;"
     style.max-width="{{viewportSize.width}}px"
     style.max-height="{{viewportSize.height}}px"
     style.width="{{viewportSize.width}}px"
     style.height="{{viewportSize.height}}px"
-    [ngStyle]="{'background-image':'url('+ image?.base64 +')'}"
-    style.background-size="{{originalViewport.rows*viewportSize.width}}px {{originalViewport.cols*viewportSize.height}}px">
-    <button mat-fab *ngIf="viewportSize.width && viewportSize.height">
-        <mat-icon>play_arrow</mat-icon>
-    </button>
+    [ngStyle]="{'background-image':'url('+ image.base64 +')', 'background-position': (backgroundPosition$ | async)?.c+'px ' + (backgroundPosition$ | async)?.r + 'px'}"
+    style.background-size="{{originalViewport.cols*viewportSize.width}}px {{originalViewport.rows*viewportSize.height}}px">
     <!-- <img [src]="image?.base64" attr.width="{{image?.width}}" attr.height="{{image?.height}}" style="object-fit: none;" style.width="{{viewportSize.width}}px"
     style.height="{{viewportSize.height}}px"
     style.object-position="{{-viewportSize.width*tile.c}}px {{-viewportSize.height*tile.r}}px"> -->
 </div>
-
+<mat-slider
+    [disabled]="selectedAreaForm === undefined || selectedAreaForm.invalid || selectedAreaForm.pending"
+    [max]="selectedAreaForm !== undefined && selectedAreaForm.valid ? selectedAreaForm.controls['to'].value : 1"
+    [min]="selectedAreaForm !== undefined && selectedAreaForm.valid ? selectedAreaForm.controls['from'].value : 1"
+    step="1"
+    showTickMarks="true"
+    (input)="playPosition$.next($event)"
+    >
+    <!-- <input #slider (value)="playPosition"> -->
+</mat-slider>
+<!-- <span>{{(playPosition$ | async).value}}</span> -->
+<div>
+    <button mat-icon-button>
+        <mat-icon>stop</mat-icon>
+    </button>
+    <button mat-fab *ngIf="viewportSize.width && viewportSize.height" color="primary">
+        <mat-icon>play_arrow</mat-icon>
+    </button>
+    <button mat-icon-button>
+        <mat-icon>replay</mat-icon>
+    </button>
+    <mat-button-toggle value="left" aria-label="Text align left">
+        <mat-icon>undo</mat-icon>
+    </mat-button-toggle>
+</div>
 <div>{{viewportSize.width}}x{{viewportSize.height}}</div>
 <div>aspect ratio: {{viewportSize.height/viewportSize.width}}</div>
 <div>{{panelWidth}}x{{panelHeight}}</div>

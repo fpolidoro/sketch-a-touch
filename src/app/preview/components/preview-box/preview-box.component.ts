@@ -1,8 +1,9 @@
 import { Component, HostListener, OnInit } from '@angular/core';
+import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { IImageFile, ISize, IViewport } from '@preview/interfaces/files';
 import { IArea, ITile } from '@preview/interfaces/shapes';
 import { FileService, IAreaDragged } from '@preview/services/file.service';
-import { Subject, combineLatest, filter, merge, tap } from 'rxjs';
+import { Observable, Subject, combineLatest, filter, map, merge, startWith, switchMap, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'preview-box',
@@ -18,10 +19,36 @@ export class PreviewBoxComponent implements OnInit {
   reductionPerc: number = 1.0
   image?: IImageFile
   originalViewport: IViewport = { cols: 0, rows: 0}
+  selectedAreaForm?: FormGroup
+
+  /** Keeps track the current position of the slider during slider drag (valueChanges in a FormControl would only update when the user releases the slider) */
+  playPosition$: Subject<any> = new Subject<any>()
+  /** Observable to update the `background-position` CSS style of the preview, so that it animates according to the position of the slider*/
+  backgroundPosition$: Observable<ITile> = this.playPosition$.pipe(
+    withLatestFrom(this._fileService.selectedInteractiveAreaChanged$.pipe(
+      switchMap((selectedArea: number) => this._fileService.formArray$.pipe(
+        map((formArray: FormArray) => formArray.controls[selectedArea] as FormGroup)  //take the form of the currently selected area because we'll need the direction later
+      ))
+    )),
+    map(([positionEvent, areaForm]) => {  //compute the background position so it can be retrieved by the async pipe in the template
+      let cssBackgroundPosition: ITile = { c: 0, r: 0}
+      switch(areaForm.controls['direction'].value.label){
+        case 'Row': //update the background-position-x value
+          cssBackgroundPosition.c = -this.viewportSize.width*positionEvent.value
+          break
+        case 'Column': //update the background-position-x value
+          cssBackgroundPosition.r = -this.viewportSize.height*positionEvent.value
+          break
+      }
+
+      //console.log(cssBackgroundPosition)
+      return cssBackgroundPosition
+    })
+  )
   
   private _areas: IArea[] = []
   private _windowSize$: Subject<ISize> = new Subject<ISize>()
-
+  
   constructor(private _fileService: FileService) { }
 
   ngOnInit(): void {
@@ -64,7 +91,13 @@ export class PreviewBoxComponent implements OnInit {
       this._fileService.selectedInteractiveAreaChanged$.pipe( //the selected area has changed, update the tile so that the preview shows the right starting tile for the animation
         tap((selectedArea: number) => console.log(`Selected area: ${selectedArea}`)),
         filter((selectedArea: number) => !isNaN(selectedArea)),
-        tap((selectedArea: number) => this.tile = this._areas[selectedArea].pos))
+        switchMap((selectedArea: number) => this._fileService.formArray$.pipe(  //get the form corresponding to the currently selected area: its values are needed to set up the slider
+          tap((formArray: FormArray) => {
+            this.selectedAreaForm = formArray.controls[selectedArea] as FormGroup
+            this.tile = this._areas[selectedArea].pos
+          })
+        ))
+      ),
     ).subscribe()
     
     this.onResize(null)
