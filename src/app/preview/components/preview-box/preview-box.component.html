@@ -1,14 +1,20 @@
-<h1>Animation preview</h1>
-<div *ngIf="image" style="display: flex; justify-content: center; align-items: center; border: 1px solid black; background-position: 0 0;"
+<h2>Animation preview</h2>
+<div *ngIf="image && originalViewport.cols > 0 && originalViewport.rows > 0 && !(originalViewport.cols === 1 && originalViewport.rows === 1)" style="display: flex; justify-content: center; align-items: center; border: 1px solid black; background-position: 0 0;"
     style.max-width="{{viewportSize.width}}px"
     style.max-height="{{viewportSize.height}}px"
     style.width="{{viewportSize.width}}px"
     style.height="{{viewportSize.height}}px"
     [ngStyle]="{'background-image':'url('+ image.base64 +')', 'background-position': (backgroundPosition$ | async)?.c+'px ' + (backgroundPosition$ | async)?.r + 'px'}"
     style.background-size="{{originalViewport.cols*viewportSize.width}}px {{originalViewport.rows*viewportSize.height}}px">
-    <!-- <img [src]="image?.base64" attr.width="{{image?.width}}" attr.height="{{image?.height}}" style="object-fit: none;" style.width="{{viewportSize.width}}px"
-    style.height="{{viewportSize.height}}px"
-    style.object-position="{{-viewportSize.width*tile.c}}px {{-viewportSize.height*tile.r}}px"> -->
+    <div class="animation-box-empty-state" *ngIf="!selectedAreaForm" style="width: 100%; background-color: rgba(255,255,255,0.7); height: 100%;">
+        <mat-icon *ngIf="viewportSize.height >= 128">animation</mat-icon>
+        <span *ngIf="areas$ | async">Select an interactive area to preview the animation</span>
+        <span *ngIf="!(areas$ | async)">Set up an interactive area to see the animation</span>
+    </div>
+</div>
+<div class="animation-box-empty-state" *ngIf="!image || originalViewport.cols <= 0 || originalViewport.rows <= 0 || (originalViewport.cols === 1 && originalViewport.rows === 1)">
+    <mat-icon>animation</mat-icon>
+    <span>Nothing to animate</span>
 </div>
 <mat-slider
     [disabled]="selectedAreaForm === undefined || selectedAreaForm.invalid || selectedAreaForm.pending"
@@ -23,16 +29,17 @@
 </mat-slider>
 <!-- <span>{{(playPosition$ | async).value}}</span> -->
 <div class="animation-control-box">
-    <mat-button-toggle value="left" aria-label="Preview undo animation" matTooltip="Toggle undo animation preview" [disabled]="selectedAreaForm === undefined || !selectedAreaForm.controls['allowUndo'].value">
+    <mat-button-toggle value="left" aria-label="Preview undo animation" matTooltip="Toggle undo animation preview" (click)="toggleUndo$.next()" [disabled]="selectedAreaForm === undefined || !selectedAreaForm.controls['allowUndo'].value" [checked]="undo">
         <mat-icon>undo</mat-icon>
     </mat-button-toggle>
-    <button mat-fab *ngIf="viewportSize.width && viewportSize.height" color="primary" (click)="playPause$.next()">
+    <span></span>
+    <button mat-fab color="primary" (click)="playPause$.next()" [disabled]="!viewportSize.width || !viewportSize.height || selectedAreaForm === undefined || !selectedAreaForm.valid">
         <mat-icon>{{isPlaying ? 'pause' : 'play_arrow'}}</mat-icon>
     </button>
-    <button mat-icon-button (click)="stop$.next()">
+    <button mat-icon-button (click)="stop$.next()" [disabled]="!viewportSize.width || !viewportSize.height || selectedAreaForm === undefined || !selectedAreaForm.valid">
         <mat-icon>stop</mat-icon>
     </button>
 </div>
-<div>{{viewportSize.width}}x{{viewportSize.height}}</div>
+<!-- <div>{{viewportSize.width}}x{{viewportSize.height}}</div>
 <div>aspect ratio: {{viewportSize.height/viewportSize.width}}</div>
-<div>{{panelWidth}}x{{panelHeight}}</div>
+<div>{{panelWidth}}x{{panelHeight}}</div> -->
