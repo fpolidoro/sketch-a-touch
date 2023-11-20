@@ -1,18 +1,19 @@
-<h1 mat-dialog-title>Guide</h1>
+<h1 mat-dialog-title>Guide - Interactive Areas</h1>
 <div mat-dialog-content>
-  <span>An interactive area defines a region on the viewport that reacts to a gesture performed by the user by animating a portion of the spritesheet.</span>
+  <span>An interactive area defines a region on the viewport that reacts to a gesture performed by the user by animating a portion of the sprite-sheet.</span>
   <br style="margin-bottom: 8px;">
-  <span>To define an interactive area, click on the <i>Add interactive area</i> button, select the shape the area should have and draw it on the sprite sheet.</span>
+  <span>To define an interactive area, click on the <i>Add interactive area</i> button, select the shape the area should have and draw it on the sprite-sheet.</span>
   <br>
-  <span>Once the area has been drawn, its set up can be completed by specifying:
+  <span>Once the area has been drawn, its configuration can be completed by specifying:
     <ul style="margin: 4px 0; padding: 0 24px;">
         <li>the <b>gesture</b> the area should react to</li>
-        <li>the <b>start</b> frame from which the sprite sheet shall start its transition</li>
-        <li>the <b>end</b> frame where such a transition shall stop</li>
-        <li>the <b>direction</b>, horizontal or vertical, in which the sprite shall slide</li>
+        <li>the <b>direction</b>, horizontal or vertical, in which the sprite-sheet shall slide to animate</li>
+        <li>the <b>start</b> frame from which the animation shall start. This frame can be changed by dragging the shape onto another tile of the sprite-sheet</li>
+        <li>the <b>end</b> frame where the animation shall stop</li>
+        <li>whether the area shall also behave as <b>undo action</b></li>
     </ul>
-    By default, the area is automatically disabled once the spritesheet reaches the end frame, meaning that it will stop reacting to the user gestures until
-    the spritesheet is reset to the start frame. To change this behavior, untick from the checkbox <i>Disable area on end</i>.
+    By default, the area is not disabled once the animation reaches the end frame. Therefore, performing the gesture again will revert the animation to the initial frame. 
+    To change this behavior and define a custom undo action, deselect the checkbox <i>Use this area also for the undo action</i>.
 </span>
 </div>
 <div mat-dialog-actions>
