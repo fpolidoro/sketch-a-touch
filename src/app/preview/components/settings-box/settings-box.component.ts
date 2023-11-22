@@ -142,7 +142,7 @@ export class SettingsBoxComponent implements OnInit {
               tap(() => {
                 this.areas.splice(selection, 1) //delete the item from the list
                 this._areasForm.controls.splice(selection,1)
-                this._fileService.selectInteractiveArea(-1) //reset the selected item
+                this._fileService.selectInteractiveArea(NaN) //reset the selected item
               })
             )
           })
