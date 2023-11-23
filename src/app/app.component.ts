@@ -8,7 +8,7 @@ import { debounceTime, Subject, tap, withLatestFrom } from 'rxjs';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  title = 'q-generator';
+  title = 'sketch-a-touch';
 
   /** Defines the state of the drawer (open/closed) */
   openDrawer$ = this._fileService.codeDrawerOpened$.pipe(

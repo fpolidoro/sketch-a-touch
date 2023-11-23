@@ -16,16 +16,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'q-generator'`, () => {
+  it(`should have as title 'sketch-a-touch'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('q-generator');
+    expect(app.title).toEqual('sketch-a-touch');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('q-generator app is running!');
+    expect(compiled.querySelector('.content span')?.textContent).toContain('sketch-a-touch app is running!');
   });
 });

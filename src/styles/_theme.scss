@@ -11,23 +11,23 @@
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
-$q-generator-primary: mat.define-palette(mat.$orange-palette);
-$q-generator-accent: mat.define-palette(mat.$light-blue-palette/*, 100*/);
+$sketch-a-touch-primary: mat.define-palette(mat.$orange-palette);
+$sketch-a-touch-accent: mat.define-palette(mat.$light-blue-palette/*, 100*/);
 
 // The warn palette is optional (defaults to red).
-$q-generator-warn: mat.define-palette(mat.$red-palette);
+$sketch-a-touch-warn: mat.define-palette(mat.$red-palette);
 
 // Create the theme object. A theme consists of configurations for individual
 // theming systems such as "color" or "typography".
-$q-generator-theme: mat.define-light-theme((
+$sketch-a-touch-theme: mat.define-light-theme((
   color: (
-    primary: $q-generator-primary,
-    accent: $q-generator-accent,
-    warn: $q-generator-warn,
+    primary: $sketch-a-touch-primary,
+    accent: $sketch-a-touch-accent,
+    warn: $sketch-a-touch-warn,
   )
 ));
 
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
-@include mat.all-component-themes($q-generator-theme);
+@include mat.all-component-themes($sketch-a-touch-theme);

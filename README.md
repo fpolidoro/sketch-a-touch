@@ -9,10 +9,10 @@ To achieve this goal however there are a number of challenges to be addressed.
 
 To cope with the above challenges, infovis designers must find out which tasks to prioritise and map them to standard gestures while making sure these mappings are and stay consistent with those of other visualisations.
 
-# q-generator
-q-generator is a proof of concept that aims at helping designers to quickly set up interactive surveys to test the usability of gesture-task associations directly on mobile devices.
+# sketch-a-touch
+sketch-a-touch is a proof of concept that aims at helping designers to quickly set up interactive surveys to test the usability of gesture-task associations directly on mobile devices.
 
-To allow fast prototyping and fast evaluation with potential users, q-generator extends the paper screen idea proposed by [] and proposes a paper prototype that reacts to the user input by swapping the paper views without the need for a human Wizard of Oz.
+To allow fast prototyping and fast evaluation with potential users, sketch-a-touch extends the paper screen idea proposed by [] and proposes a paper prototype that reacts to the user input by swapping the paper views without the need for a human Wizard of Oz.
 
 This is done by leveraging texture atlases (a.k.a. spritesheets) a popular technique employed by 2D video games to animate the characters upon user input. A spritesheet is a large image made of multiple smaller images sharing the same size, which are swapped sequentially to create the animation.
 

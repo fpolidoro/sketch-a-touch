@@ -32,7 +32,7 @@
     }
 
     &.code {
-        background-color: mat.get-color-from-palette($q-generator-primary, 50);
+        background-color: mat.get-color-from-palette($sketch-a-touch-primary, 50);
         font-family:  'Roboto Mono', monospace;
         margin-bottom: 16px;
     }
@@ -77,7 +77,7 @@
             }
 
             &.frame {
-                border: 1px solid mat.get-color-from-palette($q-generator-accent);
+                border: 1px solid mat.get-color-from-palette($sketch-a-touch-accent);
                 box-sizing: border-box;
             }
         }
