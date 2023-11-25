@@ -3,7 +3,7 @@ import { FormArray, FormGroup } from '@angular/forms';
 import { IImageFile, ISize, IViewport } from '@preview/interfaces/files';
 import { IArea, ITile } from '@preview/interfaces/shapes';
 import { FileService, IAreaDragged } from '@preview/services/file.service';
-import { BehaviorSubject, Observable, Subject, combineLatest, debounceTime, defer, distinctUntilChanged, filter, iif, interval, map, merge, mergeMap, of, race, switchMap, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, combineLatest, debounceTime, defer, distinctUntilChanged, filter, iif, interval, map, merge, mergeMap, of, race, shareReplay, startWith, switchMap, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'preview-box',
@@ -30,8 +30,7 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
   /** Observable to update the `background-position` CSS style of the preview, so that it animates according to the position of the slider*/
   backgroundPosition$: Observable<ITile> = this.playPosition$.pipe(
     tap((playPosition) => console.log(`playPosition: ${playPosition}`)),
-    distinctUntilChanged((prev, cur) => prev === cur),
-    debounceTime(149),
+    tap((playPosition) => console.log(`playPosition AFTER distinct: ${playPosition}`)),
     withLatestFrom(this._fileService.selectedInteractiveAreaChanged$.pipe(
       filter((selectedArea: number) => !isNaN(selectedArea) && selectedArea >= 0),
       switchMap((selectedArea: number) => this._fileService.formArray$.pipe(
@@ -113,7 +112,8 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
         this.areas$.next(this._areas.length)
       })),
       this._fileService.selectedInteractiveAreaChanged$.pipe( //the selected area has changed, update the tile so that the preview shows the right starting tile for the animation
-        mergeMap((selectedArea: number) => iif(
+      tap((value: number) => console.log(`Selected area changed: ${value}`)),  
+      switchMap((selectedArea: number) => iif(
           () => !isNaN(selectedArea) && selectedArea >= 0,
           defer(() => this._fileService.formArray$.pipe(  //get the form corresponding to the currently selected area: its values are needed to set up the slider
             tap((formArray: FormArray) => {
@@ -126,7 +126,9 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
                 tap(() => this.isPlaying = !this.isPlaying),  //toggle the icon for the template
                 filter(() => this.isPlaying), //play the animation only if we clicked the play icon (and not the pause one)
                 switchMap(() => interval(150).pipe( //emit a value every 150ms that updates the slider and emits a value to update the background-position
-                  withLatestFrom(this.playPosition$.pipe(map((position: number) => isNaN(position) ? (this.undo ? Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value) : 0) : position))),
+                  tap((interval) => console.log(`Inside interval withLatestFrom ${interval}`)),
+                  withLatestFrom(this.playPosition$.pipe(
+                    map((position: number) => isNaN(position) ? (this.undo ? Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value) : 0) : position))),
                   map(([interval, position]) => {
                     let pos = this.undo ? position-1 : position+1
                     console.log(`map pos: ${pos}, interval: ${interval}`)
