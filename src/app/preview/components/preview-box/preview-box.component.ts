@@ -3,7 +3,7 @@ import { FormArray, FormGroup } from '@angular/forms';
 import { IImageFile, ISize, IViewport } from '@preview/interfaces/files';
 import { IArea, ITile } from '@preview/interfaces/shapes';
 import { FileService, IAreaDragged } from '@preview/services/file.service';
-import { BehaviorSubject, Observable, Subject, combineLatest, debounceTime, defer, distinctUntilChanged, filter, iif, interval, map, merge, mergeMap, of, race, shareReplay, startWith, switchMap, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, Subject, combineLatest, debounceTime, defer, distinctUntilChanged, filter, iif, interval, map, merge, mergeMap, of, race, repeat, shareReplay, startWith, switchMap, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'preview-box',
@@ -52,9 +52,14 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
     })
   )
   /** Used by the template to display the empty states and other hints */
-  areas$: Subject<number> = new Subject<number>()
+  areas$: ReplaySubject<number> = new ReplaySubject<number>(1)
   /** Observes the clicks on the Undo animation toggle button */
-  toggleUndo$: Subject<void> = new Subject<void>()
+  toggleUndo$: ReplaySubject<void> = new ReplaySubject<void>(1)
+  //areas and toggleUndo must be ReplaySubject because they are used by the template according to ngIf blocks. As such,
+  //whenever the template is re-rendered, the values of the ReplaySubject are emitted again, so that the template can
+  //retrieve them and display the right content. If we used a Subject, the values would be emitted only the first time
+  //the template is rendered, and then never again, so the template would wait forever for the values to be emitted again
+
   undo: boolean = false
 
   /** Used by the template to display the empty states and other hints */
@@ -112,67 +117,68 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
         this.areas$.next(this._areas.length)
       })),
       this._fileService.selectedInteractiveAreaChanged$.pipe( //the selected area has changed, update the tile so that the preview shows the right starting tile for the animation
-      tap((value: number) => console.log(`Selected area changed: ${value}`)),  
-      switchMap((selectedArea: number) => iif(
-          () => !isNaN(selectedArea) && selectedArea >= 0,
-          defer(() => this._fileService.formArray$.pipe(  //get the form corresponding to the currently selected area: its values are needed to set up the slider
-            tap((formArray: FormArray) => {
-              this.selectedAreaForm = formArray.controls[selectedArea] as FormGroup
-              this.tile = this._areas[selectedArea].pos
-            }),
-            map((formArray: FormArray) => formArray.controls[selectedArea] as FormGroup),
-            switchMap((formGroup: FormGroup) => merge(
-              this.playPause$.pipe( //listen to the play/pause button
-                tap(() => this.isPlaying = !this.isPlaying),  //toggle the icon for the template
-                filter(() => this.isPlaying), //play the animation only if we clicked the play icon (and not the pause one)
-                switchMap(() => interval(150).pipe( //emit a value every 150ms that updates the slider and emits a value to update the background-position
-                  tap((interval) => console.log(`Inside interval withLatestFrom ${interval}`)),
-                  withLatestFrom(this.playPosition$.pipe(
-                    map((position: number) => isNaN(position) ? (this.undo ? Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value) : 0) : position))),
-                  map(([interval, position]) => {
-                    let pos = this.undo ? position-1 : position+1
-                    console.log(`map pos: ${pos}, interval: ${interval}`)
-                    //update the slider position (and the background) only if we have not reached the end frame yet 
-                    if(this.undo ? pos >= 0 : pos < Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value)){
-                      this.playPosition$.next(pos)
-                    }else{  //we reached the end frame, so reset the slider to 0 to replay the animation (this is for when the slider is on the last frame and we click play again)
-                      pos = this.undo ? Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value) : 0
-                      this.playPosition$.next(pos)
-                    }
+        tap((value: number) => console.log(`Selected area changed: ${value}`)),
+        switchMap((selectedArea: number) => iif(
+            () => !isNaN(selectedArea) && selectedArea >= 0,
+            defer(() => this._fileService.formArray$.pipe(  //get the form corresponding to the currently selected area: its values are needed to set up the slider
+              tap((formArray: FormArray) => {
+                this.selectedAreaForm = formArray.controls[selectedArea] as FormGroup
+                this.tile = this._areas[selectedArea].pos
+              }),
+              map((formArray: FormArray) => formArray.controls[selectedArea] as FormGroup),
+              switchMap((formGroup: FormGroup) => merge(
+                this.playPause$.pipe( //listen to the play/pause button
+                  tap(() => this.isPlaying = !this.isPlaying),  //toggle the icon for the template
+                  filter(() => this.isPlaying), //play the animation only if we clicked the play icon (and not the pause one)
+                  switchMap(() => interval(150).pipe( //emit a value every 150ms that updates the slider and emits a value to update the background-position
+                    tap((interval) => console.log(`Inside interval withLatestFrom ${interval}`)),
+                    withLatestFrom(this.playPosition$.pipe(
+                      map((position: number) => isNaN(position) ? (this.undo ? Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value) : 0) : position))),
+                    map(([interval, position]) => {
+                      let pos = this.undo ? position-1 : position+1
+                      console.log(`map pos: ${pos}, interval: ${interval}`)
+                      //update the slider position (and the background) only if we have not reached the end frame yet 
+                      if(this.undo ? pos >= 0 : pos < Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value)){
+                        this.playPosition$.next(pos)
+                      }else{  //we reached the end frame, so reset the slider to 0 to replay the animation (this is for when the slider is on the last frame and we click play again)
+                        pos = this.undo ? Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value) : 0
+                        this.playPosition$.next(pos)
+                      }
 
-                    return pos
-                  }),
-                  takeUntil(race(this.stop$, this.playPause$)), //stop the interval when the stop button is pressed or...
-                  takeWhile((position: number) => this.undo ? position > 0 : 
-                    position < Math.abs(formGroup.controls['to'].value-formGroup.controls['from'].value), true),  //...take until the number of frames to play is reached
-                  filter((position: number) => this.undo ? position === 0 : position === Math.abs(formGroup.controls['to'].value-formGroup.controls['from'].value)), //if we reached the end frame...
-                  tap(() => this.isPlaying = false) //...reset the play button to display the arrow instead of pause
-                )),
-              ),
-              this.stop$.pipe(  //stop has been cliked...
-                debounceTime(100),
-                tap(() => {
-                  this.playPosition$.next(this.undo ? Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value) : 0)  //reset the slider to beginning
-                  this.isPlaying = false  //reset the play state to trigger the change of icon on the FAB
-                })
-              ),
-              this.toggleUndo$.pipe(  //undo toggle has been clicked
-                tap(() => {
-                  this.undo = !this.undo
-                  //console.log(`Undo: ${this._undo}`)
-                })
-              ),
-              formGroup.controls['allowUndo'].valueChanges.pipe(  //check the value of the undo checkbox...
-                tap((allowUndo: boolean) => {
-                  if(!allowUndo && this.undo){  //...if we don't want the undo action but the toggle is checked because undo was enabled before...
-                    this.toggleUndo$.next() //...toggle the undo checkbox so that the toggle becomes unchecked
-                  }
-                })
-              )
-            ))
-          )),
-          defer(() => of(NaN).pipe(tap(() => this.selectedAreaForm = undefined)))
-        )),
+                      return pos
+                    }),
+                    takeUntil(race(this.stop$, this.playPause$)), //stop the interval when the stop button is pressed or...
+                    takeWhile((position: number) => this.undo ? position > 0 : 
+                      position < Math.abs(formGroup.controls['to'].value-formGroup.controls['from'].value), true),  //...take until the number of frames to play is reached
+                    filter((position: number) => this.undo ? position === 0 : position === Math.abs(formGroup.controls['to'].value-formGroup.controls['from'].value)), //if we reached the end frame...
+                    tap(() => this.isPlaying = false) //...reset the play button to display the arrow instead of pause
+                  )),
+                ),
+                this.stop$.pipe(  //stop has been cliked...
+                  debounceTime(100),
+                  tap(() => {
+                    this.playPosition$.next(this.undo ? Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value) : 0)  //reset the slider to beginning
+                    this.isPlaying = false  //reset the play state to trigger the change of icon on the FAB
+                  })
+                ),
+                this.toggleUndo$.pipe(  //undo toggle has been clicked
+                  tap(() => {
+                    this.undo = !this.undo
+                    //console.log(`Undo: ${this._undo}`)
+                  })
+                ),
+                formGroup.controls['allowUndo'].valueChanges.pipe(  //check the value of the undo checkbox...
+                  tap((allowUndo: boolean) => {
+                    if(!allowUndo && this.undo){  //...if we don't want the undo action but the toggle is checked because undo was enabled before...
+                      this.toggleUndo$.next() //...toggle the undo checkbox so that the toggle becomes unchecked
+                    }
+                  })
+                )
+              ))
+            )),
+            defer(() => of(NaN).pipe(tap(() => this.selectedAreaForm = undefined)))
+          )
+        ),
       ),
     ).pipe(
       takeUntil(this._onDestroy$)
