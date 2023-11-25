@@ -3,7 +3,7 @@ import { FormArray, FormGroup } from '@angular/forms';
 import { IImageFile, ISize, IViewport } from '@preview/interfaces/files';
 import { IArea, ITile } from '@preview/interfaces/shapes';
 import { FileService, IAreaDragged } from '@preview/services/file.service';
-import { BehaviorSubject, Observable, ReplaySubject, Subject, combineLatest, debounceTime, defer, distinctUntilChanged, filter, iif, interval, map, merge, mergeMap, of, race, repeat, shareReplay, startWith, switchMap, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, Subject, combineLatest, debounceTime, defer, filter, iif, interval, map, merge, of, race, share, switchMap, takeUntil, takeWhile, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'preview-box',
@@ -29,8 +29,6 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
   playPosition$: BehaviorSubject<number> = new BehaviorSubject<number>(0)
   /** Observable to update the `background-position` CSS style of the preview, so that it animates according to the position of the slider*/
   backgroundPosition$: Observable<ITile> = this.playPosition$.pipe(
-    tap((playPosition) => console.log(`playPosition: ${playPosition}`)),
-    tap((playPosition) => console.log(`playPosition AFTER distinct: ${playPosition}`)),
     withLatestFrom(this._fileService.selectedInteractiveAreaChanged$.pipe(
       filter((selectedArea: number) => !isNaN(selectedArea) && selectedArea >= 0),
       switchMap((selectedArea: number) => this._fileService.formArray$.pipe(
@@ -49,7 +47,8 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
       }
       console.log(cssBackgroundPosition)
       return cssBackgroundPosition
-    })
+    }),
+    share()  //this prevents the previous part to be executed every time a new subscriber starts observing
   )
   /** Used by the template to display the empty states and other hints */
   areas$: ReplaySubject<number> = new ReplaySubject<number>(1)
@@ -131,12 +130,10 @@ export class PreviewBoxComponent implements OnInit, OnDestroy {
                   tap(() => this.isPlaying = !this.isPlaying),  //toggle the icon for the template
                   filter(() => this.isPlaying), //play the animation only if we clicked the play icon (and not the pause one)
                   switchMap(() => interval(150).pipe( //emit a value every 150ms that updates the slider and emits a value to update the background-position
-                    tap((interval) => console.log(`Inside interval withLatestFrom ${interval}`)),
                     withLatestFrom(this.playPosition$.pipe(
                       map((position: number) => isNaN(position) ? (this.undo ? Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value) : 0) : position))),
                     map(([interval, position]) => {
                       let pos = this.undo ? position-1 : position+1
-                      console.log(`map pos: ${pos}, interval: ${interval}`)
                       //update the slider position (and the background) only if we have not reached the end frame yet 
                       if(this.undo ? pos >= 0 : pos < Math.abs(1+formGroup.controls['to'].value-formGroup.controls['from'].value)){
                         this.playPosition$.next(pos)
