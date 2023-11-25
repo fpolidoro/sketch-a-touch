@@ -174,8 +174,11 @@ export class SettingsBoxComponent implements OnInit {
     this._fileService.shareFormArray(this._areasForm)
   }
 
+  /** Announce the click on a specific interactive area, only if this area differs from the previously selected one */
   selectArea(index: number): void {
-    this._fileService.selectInteractiveArea(index)
+    if(index !== this.selectedAreaIndex){
+      this._fileService.selectInteractiveArea(index)
+    } 
   }
 
   /** Get the size of the image
