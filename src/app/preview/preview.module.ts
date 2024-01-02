@@ -16,6 +16,9 @@ import { CodeBoxComponent } from './components/code-box/code-box.component';
 import { SnippetBoxComponent } from './components/snippet-box/snippet-box.component';
 import { ErrorDetectorPipe } from './pipes/error-detector.pipe';
 import { PreviewBoxComponent } from './components/preview-box/preview-box.component';
+import { CssSnippetComponent } from './components/snippet-box/css-snippet/css-snippet.component';
+import { HtmlSnippetComponent } from './components/snippet-box/html-snippet/html-snippet.component';
+import { JsSnippetComponent } from './components/snippet-box/js-snippet/js-snippet.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +33,9 @@ import { PreviewBoxComponent } from './components/preview-box/preview-box.compon
     SnippetBoxComponent,
     ErrorDetectorPipe,
     PreviewBoxComponent,
+    CssSnippetComponent,
+    HtmlSnippetComponent,
+    JsSnippetComponent,
   ],
   imports: [
     CommonModule,
