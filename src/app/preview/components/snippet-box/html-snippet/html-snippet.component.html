@@ -4,14 +4,10 @@
     &lt;html&gt;
         &lt;meta charset="utf-8"&gt;
         &lt;meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /&gt;
-        &lt;head&gt;
-            &lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/&gt;
-        &lt;/head&gt;
         &lt;body&gt;
             &lt;div id="container"&gt;
-                &lt;div id="anim"&gt;
-                    &lt;div id="ia-1"&gt;&lt;/div&gt;
-                    &lt;div id="ia-2"&gt;&lt;/div&gt;
+                &lt;div id="anim"&gt;<ng-container *ngFor="let area of areas; let index = index">                
+                    &lt;div id="ia-{{index+1}}"&gt;&lt;/div&gt;</ng-container>
                 &lt;/div&gt;
             &lt;/div&gt;
     &lt;/body&gt;
