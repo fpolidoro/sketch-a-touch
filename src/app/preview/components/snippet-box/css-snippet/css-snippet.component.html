@@ -1,1 +1,39 @@
-<p>css-snippet works!</p>
+<code><pre>
+body {{ '{' }}
+    font-family: 'Roboto', sans-serif;
+{{ '}' }}
+
+#container {{ '{' }}
+    width: 100%;
+    overflow: auto;
+    position: relative;
+{{ '}' }}
+
+#anim {{ '{' }}
+    background-image: url('sprites.png');
+    background-position-x: 0px;
+    width: {{viewportSize.width}}px;
+    height: {{viewportSize.height}}px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+{{ '}' }}
+
+<ng-container *ngFor="let area of areas; let index = index">
+#ia-{{index+1}} {{ '{' }}
+    position: absolute;<ng-container *ngIf="area.type === 'circle'">
+    top: {{area.y - (area | castShape: 'circle').r/2}}px;
+    left: {{area.x - (area | castShape: 'circle').r/2}}px;
+    width: {{(area | castShape: 'circle').r}}px;
+    height: {{(area | castShape: 'circle').r}}px;
+    border-radius: 50%;</ng-container><ng-container *ngIf="area.type === 'rectangle'">
+    top: {{area.y}}px;
+    left: {{area.x}}px;
+    width: {{(area | castShape: 'rectangle').w - area.x}}px;
+    height: {{(area | castShape: 'rectangle').h - area.y}}px;</ng-container>
+    content: '';
+    border: 2px dashed blueviolet;
+{{ '}' }}
+</ng-container>
+</pre></code>
