@@ -1,1 +1,55 @@
-<p>js-snippet works!</p>
+<code *ngIf="formArray && array.length > 0 && formArray.valid"><pre>
+var modules = [
+  `https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js`
+]
+
+const anim = document.getElementById("anim")
+<ng-container *ngFor="let area of areas; let index = index">
+const ia{{index+1}} = document.getElementById("ia-{{index+1}}")
+const i{{index+1}} = document.getElementById("i{{index+1}}")
+
+const MIN_{{index+1}} = {{array[index].get('direction')!.value!.label === 'Column' ? viewportSize.height : viewportSize.width }}*{{array[index].get('from')!.value+1}}
+const MAX_{{index+1}} = MIN_{{index+1}}*({{array[index].get('to')!.value+1}})
+const LAST_{{index+1}} = MIN_{{index+1}}+MAX_{{index+1}}
+</ng-container>
+
+Promise.all(
+  modules.map((module, _) =>
+    import(module)
+  )
+).then(() => {{'{'}}
+
+  let script = document.createElement('script')
+  script.setAttribute('src', 'https://unpkg.com/rxjs@7.5.5/dist/bundles/rxjs.umd.js')
+  script.setAttribute('id', "rxscript")
+  document.body.appendChild(script)
+
+  script.onload = () => {{'{'}}
+    // script has loaded, you can now use it safely
+
+    <ng-container *ngFor="let area of areas; let index = index">
+    const lastPos{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}}$ = new window.rxjs.BehaviorSubject(0)
+    lastPos{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}}$.subscribe()
+  
+    const ia{{index+1}}Click$ = window.rxjs.fromEvent(ia{{index+1}}, 'click')
+    ia{{index+1}}Click$.pipe(
+      window.rxjs.exhaustMap(() => window.rxjs.interval(100).pipe(
+        window.rxjs.withLatestFrom(lastPos{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}}$.pipe(
+          window.rxjs.map((lp{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}} => {{ '}'}}
+            return lp{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}}%MAX_{{index+1}}
+          {{'}'}}))
+        )),
+        window.rxjs.takeWhile(([i, lp{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}}]) => {{'{'}}
+          return lp{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}} === 0
+        {{'}'}}),
+        window.rxjs.take(5)
+      ))
+    ).subscribe(([i, lPos{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}}]) => {{'{'}}
+      anim.style.backgroundPosition{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}} = `-${{'{'}}lPos{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}}+MIN_{{index+1}}*i{{'}'}}px`
+      if(i === 4){{'{'}}
+        lastPos{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}}$.next((lPos{{array[index].get('direction')!.value!.label === 'Column' ? 'Y' : 'X'}}+MIN_{{index+1}}*i)%MAX_{{index+1}})
+      {{'}'}}
+    {{'}'}})
+    </ng-container>
+{{'}'}})
+</pre></code>
