@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FileService } from '@preview/services/file.service';
-import { debounceTime, filter, Subject, Subscription, switchMap, withLatestFrom } from 'rxjs';
+import { debounceTime, filter, Subject, Subscription, switchMap, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'code-box',
@@ -9,6 +9,9 @@ import { debounceTime, filter, Subject, Subscription, switchMap, withLatestFrom 
 })
 export class CodeBoxComponent implements OnInit, OnDestroy {
   closeDrawer$: Subject<void> = new Subject<void>()
+  changeDeployMode$: Subject<void> = new Subject<void>()
+
+  deployLocally: boolean = false
 
   private _subscription?: Subscription
 
@@ -24,6 +27,11 @@ export class CodeBoxComponent implements OnInit, OnDestroy {
         )
       })
     ).subscribe()
+
+    this._subscription.add(this.changeDeployMode$.pipe(
+      debounceTime(100),
+      tap(() => this.deployLocally = !this.deployLocally),
+    ).subscribe(() => this._fileService.changeDeployMode(this.deployLocally)))
   }
 
   ngOnDestroy(): void {

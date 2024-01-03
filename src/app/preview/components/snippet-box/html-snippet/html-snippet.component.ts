@@ -11,6 +11,7 @@ import { Observable, Subject, takeUntil, tap } from 'rxjs';
 export class HtmlSnippetComponent implements OnInit, OnDestroy {
 
   areas: AbstractControl[] = []
+  deployLocally$: Observable<boolean> = this._fileService.deployModeChanged$
 
   private _onDestroy$: Subject<void> = new Subject<void>()
 
@@ -20,7 +21,7 @@ export class HtmlSnippetComponent implements OnInit, OnDestroy {
     this._fileService.formArray$.pipe(
       tap((formArray: FormArray) => this.areas = formArray.controls),
       takeUntil(this._onDestroy$)
-      ).subscribe()
+    ).subscribe()
   }
 
   ngOnDestroy(): void {

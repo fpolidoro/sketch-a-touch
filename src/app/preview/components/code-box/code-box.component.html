@@ -5,6 +5,9 @@
         <mat-icon>close</mat-icon>
     </button>
 </mat-toolbar>
+
+<mat-checkbox [checked]="deployLocally" (change)="changeDeployMode$.next()">Deploy locally</mat-checkbox>
+
 <p>Paste these three code snippets into an online code editor or a questionnaire editor to deploy the prototype</p>
 
 <snippet-box title="HTML" type="html"></snippet-box>

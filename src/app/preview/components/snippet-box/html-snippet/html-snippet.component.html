@@ -1,14 +1,18 @@
 <code><pre>
 &lt;!DOCTYPE html&gt;
-    &lt;html&gt;
-        &lt;meta charset="utf-8"&gt;
-        &lt;meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /&gt;
-        &lt;body&gt;
-            &lt;div id="container"&gt;
-                &lt;div id="anim"&gt;<ng-container *ngFor="let area of areas; let index = index">                
-                    &lt;div id="ia-{{index+1}}"&gt;&lt;/div&gt;</ng-container>
-                &lt;/div&gt;
+&lt;html&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /&gt;<ng-container *ngIf="this.deployLocally$ | async">
+    &lt;head&gt;
+        &lt;link rel="stylesheet" href="style.css"&gt;
+    &lt;/head&gt;</ng-container>
+    &lt;body&gt;
+        &lt;div id="container"&gt;
+            &lt;div id="anim"&gt;<ng-container *ngFor="let area of areas; let index = index">                
+                &lt;div id="ia-{{index+1}}"&gt;&lt;/div&gt;</ng-container>
             &lt;/div&gt;
+        &lt;/div&gt;<ng-container *ngIf="this.deployLocally$ | async">
+        &lt;script src="script.js"&gt;&lt;/script&gt;</ng-container>
     &lt;/body&gt;
 &lt;/html&gt;
 </pre></code>
