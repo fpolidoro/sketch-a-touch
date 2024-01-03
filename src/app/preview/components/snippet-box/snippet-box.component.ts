@@ -1,5 +1,6 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Subject, Subscription } from 'rxjs';
+import { FileService } from '@preview/services/file.service';
+import { Subject, Subscription, tap } from 'rxjs';
 
 @Component({
   selector: 'snippet-box',
@@ -14,13 +15,15 @@ export class SnippetBoxComponent implements OnInit, OnDestroy {
 
   private _subscription?: Subscription
 
-  constructor() { }
+  constructor(private _fileService: FileService) { }
 
   ngOnInit(): void {
     if(this.title === undefined || this.type === undefined){
       throw new Error(`Cannot initialize snippet-box component as one or more @Input are undefined`)
     }else{
-  
+      this._subscription = this.copy$.pipe(
+        tap(() => this._fileService.notImplementedSnackbar()),
+      ).subscribe()
     }
   }
 

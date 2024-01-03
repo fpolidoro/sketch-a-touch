@@ -5,7 +5,7 @@
         <js-snippet *ngSwitchCase="'js'"></js-snippet>
         <css-snippet *ngSwitchCase="'css'"></css-snippet>
     </ng-container>
-    <button mat-icon-button color="primary" class="align-br"> <!-- [cdkCopyToClipboard]="" [cdkCopyToClipboardAttempts]="3"-->
+    <button mat-icon-button color="primary" class="align-br" (click)="copy$.next()"> <!-- [cdkCopyToClipboard]="" [cdkCopyToClipboardAttempts]="3"-->
         <mat-icon>content_copy</mat-icon>
     </button>
 </div>

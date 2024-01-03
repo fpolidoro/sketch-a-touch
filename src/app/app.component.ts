@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { FileService } from '@preview/services/file.service';
 import { debounceTime, Subject, tap, withLatestFrom } from 'rxjs';
 
@@ -17,7 +18,7 @@ export class AppComponent implements OnInit {
   /** Emits whenever the drawer issues a `closedStart` event */
   closeDrawer$ = new Subject<void>()
 
-  constructor(private _fileService: FileService){ }
+  constructor(private _fileService: FileService, private _snackBar: MatSnackBar){ }
 
   ngOnInit(): void {
     //this._fileService.toggleCodeDrawer(true)  //debug
@@ -31,5 +32,9 @@ export class AppComponent implements OnInit {
         this._fileService.changeDrawerStatus(false)
       }
     })
+
+    this._fileService.notImplementedSnackbar$.pipe(
+      debounceTime(100)
+    ).subscribe(() => this._snackBar.open('Not yet implemented', 'OK', {duration: 2000}))
   }
 }

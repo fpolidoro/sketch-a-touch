@@ -23,6 +23,7 @@ export class FileService {
   private _toggleCodeDrawerSource: ReplaySubject<boolean> = new ReplaySubject<boolean>(1)
   private _drawerStatusSource: ReplaySubject<boolean> = new ReplaySubject<boolean>(1)
   private _deployModeSource: ReplaySubject<boolean> = new ReplaySubject<boolean>(1)
+  private _notImplementedSnackbarSource: ReplaySubject<void> = new ReplaySubject<void>(1)
 
   /** Notifies the selection of a file
    * @param base64file The image to announce, encoded with base64
@@ -144,6 +145,14 @@ export class FileService {
    * changed accordingly
    */
   deployModeChanged$ = this._deployModeSource.asObservable()
+
+  /** Trigger the snackbar to inform the user that the feature is not yet implemented */
+  notImplementedSnackbar(): void {
+    this._notImplementedSnackbarSource.next()
+  }
+
+  /** Notifies the user that a feature is not yet implemented */
+  notImplementedSnackbar$ = this._notImplementedSnackbarSource.asObservable()
 }
 
 /** Bundle for the interactive area being dragged */
