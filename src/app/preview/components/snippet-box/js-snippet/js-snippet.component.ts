@@ -3,7 +3,7 @@ import { FormArray, FormGroup } from '@angular/forms';
 import { ISize } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
-import { Subject, merge, tap, combineLatest, takeUntil } from 'rxjs';
+import { Subject, merge, tap, combineLatest, takeUntil, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'js-snippet',
@@ -42,8 +42,12 @@ export class JsSnippetComponent implements OnInit {
         })
       )
     ).pipe(
+      withLatestFrom(this._fileService.formArray$),
       takeUntil(this._onDestroy$)
-    ).subscribe()
+    ).subscribe(([_, array]) => {
+      console.log(array)
+      console.log(array.controls)
+    })
   }
 
   ngOnDestroy(): void {

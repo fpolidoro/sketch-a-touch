@@ -17,7 +17,7 @@
                 <mat-label>Gesture</mat-label>
                 <mat-select formControlName="gesture">
                     <ng-container *ngFor="let gesture of gestures">
-                        <mat-option *ngIf="gesture.items === undefined" value="gesture.value">{{gesture.label}}</mat-option>
+                        <mat-option *ngIf="gesture.items === undefined" [value]="gesture.value">{{gesture.label}}</mat-option>
                         <mat-optgroup *ngIf="gesture.items !== undefined" [label]="gesture.label">
                             <mat-option *ngFor="let item of gesture.items" [value]="item.value">
                                 {{item.label}}
