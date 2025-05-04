@@ -1,6 +1,6 @@
 {
-  "name": "q-generator",
-  "version": "0.2.0-beta",
+  "name": "sketch-a-touch",
+  "version": "1.0.0-beta",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

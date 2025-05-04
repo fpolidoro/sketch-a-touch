@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors } from '@angular/forms';
 import { debounceTime, defer, delay, EMPTY, exhaustMap, filter, finalize, fromEvent, iif, map, mergeMap, Observable, of, race, startWith, Subject, Subscription, switchMap, take, takeUntil, tap, withLatestFrom } from 'rxjs';
 import { FileService } from '@preview/services/file.service';
 import { IImageFile, IViewport } from '@preview/interfaces/files';
@@ -24,6 +24,8 @@ export class SettingsBoxComponent implements OnInit {
     areas: new FormArray([])
   })
 
+  viewportForm: FormGroup = this.settings.controls['viewport'] as FormGroup
+
   areas: IArea[] = []
   tmpArea?: FormGroup
   selectedAreaIndex: number = NaN
@@ -41,6 +43,8 @@ export class SettingsBoxComponent implements OnInit {
 
   action$ = this._fileService.interactiveAreaActionChanged$.pipe(startWith(null))
 
+  enableAddArea$: Subject<boolean> = new Subject<boolean>()
+
   private _drawerStatus: boolean = false
   private _subscriptions?: Subscription[]
   private _areasForm: FormArray = this.settings.controls['areas'] as FormArray
@@ -52,6 +56,7 @@ export class SettingsBoxComponent implements OnInit {
       cols: 1,
       rows: 1
     })
+    this.settings.controls['viewport'].disable()
 
     this._subscriptions = [
       this.selectFile$.pipe(
@@ -67,6 +72,8 @@ export class SettingsBoxComponent implements OnInit {
               tap((result: IImageFile) => {
                 this.currentFile = result
                 this._fileService.uploadFile(result)  //notify live-box
+                this.settings.controls['viewport'].enable()  //enable the viewport controls
+                this.settings.controls['viewport'].addAsyncValidators(this._asyncViewportValidator)
                 this.settings.controls['viewport'].patchValue({ //reset columns and rows
                   cols: 1,
                   rows: 1
@@ -81,7 +88,8 @@ export class SettingsBoxComponent implements OnInit {
         }),
       ).subscribe(),
       this.settings.controls['viewport'].valueChanges.pipe(
-        debounceTime(100)
+        debounceTime(100),
+        filter((values: any) => values.rows <= 100 && values.cols <= 100) //allow splitting only if we have a reasonable amount of cols and rows. High values freeze the UI
       ).subscribe((values: IViewport) => this._fileService.viewportChange(values)),
       this.addInteractiveArea$.pipe(  //click on add new interaction area
         debounceTime(100),
@@ -190,4 +198,42 @@ export class SettingsBoxComponent implements OnInit {
     return loadedImg$;
   }
 
+  /** Asynchronous validator for the values of rows and columns that define the grid on the viewport */
+  private _asyncViewportValidator = (control: AbstractControl) => {
+    return control.valueChanges.pipe(
+      debounceTime(100),
+      take(1),
+      map((values: any) => {
+        console.log(`Validatig viewport`)
+        let result: ValidationErrors|null = null
+
+        if(Object.keys(values).every(k => values[k] === null || values[k] === undefined)){
+          result = { required: 'viewport' }
+        }else{
+          if(values.cols === null || values.cols === undefined || isNaN(values.cols)){
+            result = Object.assign(result === null ? {} : result, { required: ['viewportCols'] })
+          }else if(+values.cols < 1 || +values.cols > 100){
+            result = Object.assign(result === null ? {} : result, { invalidCols: +values.cols < 1 ? 'tooFew' : 'tooMany' })
+          }
+
+          if(values.rows === null || values.rows === undefined || isNaN(values.rows)){
+            if(result !== null && result['required'] && result['required'].length > 0){
+              result['required'].push('to')
+            }else{
+              result = Object.assign(result === null ? {} : result, { required: ['viewportRows'] })
+            }
+          }else if(+values.rows < 1 || +values.rows > 100){
+            result = Object.assign(result === null ? {} : result, { invalidRows: +values.rows < 1 ? 'tooFew' : 'tooMany' })
+          }
+
+          if(result === null && +values.cols === 1 && +values.rows === 1){  //the viewport has not been split into cells
+            result = { invalidViewport: 'singleCell' }
+          }
+        }
+              
+        console.log(result)
+        return result
+      })
+    )
+  }
 }

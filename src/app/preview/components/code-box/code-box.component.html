@@ -5,8 +5,19 @@
         <mat-icon>close</mat-icon>
     </button>
 </mat-toolbar>
-<p>Copy and paste this source code on the questionnaire editor</p>
 
-<snippet-box title="HTML" code="Test HTML"></snippet-box>
-<snippet-box title="CSS" code="Test CSS"></snippet-box>
-<snippet-box title="JS" code="Test JS"></snippet-box>
+<mat-checkbox [checked]="deployLocally" (change)="changeDeployMode$.next()">Deploy locally</mat-checkbox>
+<div *ngIf="deployLocally; else deployOnlineLabel" style="display: flex; align-items: center; padding-bottom: 8px;">
+    <button mat-stroked-button aria-label="Download source" *ngIf="deployLocally" style="flex-shrink: 0;">
+        <mat-icon>download</mat-icon>
+        <span style="margin-left: 2px;">Download source</span>
+    </button>
+    <span style="flex: 1 1 auto;"></span>
+    <span style="margin-left: 8px;">Unzip the code snippets onto a local server to deploy the prototype</span>
+</div>
+
+<ng-template #deployOnlineLabel>Paste these three code snippets into an online code editor or a questionnaire editor to deploy the prototype</ng-template>
+
+<snippet-box title="HTML" type="html"></snippet-box>
+<snippet-box title="CSS" type="css"></snippet-box>
+<snippet-box title="JS" type="js"></snippet-box>

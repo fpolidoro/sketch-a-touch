@@ -43,6 +43,8 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 
+import {DragDropModule} from '@angular/cdk/drag-drop';
+
 
 @NgModule({
   declarations: [],
@@ -83,7 +85,8 @@ import { MatTableModule } from '@angular/material/table';
     MatTooltipModule,
     MatPaginatorModule,
     MatSortModule,
-    MatTableModule
+    MatTableModule,
+    DragDropModule,
   ],
   exports: [
     MatAutocompleteModule,
@@ -121,7 +124,8 @@ import { MatTableModule } from '@angular/material/table';
     MatTooltipModule,
     MatPaginatorModule,
     MatSortModule,
-    MatTableModule
+    MatTableModule,
+    DragDropModule,
   ],
   providers: [
     {provide: MAT_BOTTOM_SHEET_DATA, useValue: {}}, //per bottomsheet, riadattato da https://stackoverflow.com/a/60977597

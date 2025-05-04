@@ -1,7 +1,11 @@
 {{title}}
 <div class="box bordered code">
-    <pre><code>{{code}}</code></pre>
-    <button mat-icon-button color="primary" aria-label="Copy HTML" class="align-br" [cdkCopyToClipboard]="code" [cdkCopyToClipboardAttempts]="3">
+    <ng-container [ngSwitch]="type">
+        <html-snippet *ngSwitchCase="'html'"></html-snippet>
+        <js-snippet *ngSwitchCase="'js'"></js-snippet>
+        <css-snippet *ngSwitchCase="'css'"></css-snippet>
+    </ng-container>
+    <button mat-icon-button color="primary" class="align-br" (click)="copy$.next()"> <!-- [cdkCopyToClipboard]="" [cdkCopyToClipboardAttempts]="3"-->
         <mat-icon>content_copy</mat-icon>
     </button>
 </div>

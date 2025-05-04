@@ -1,7 +1,9 @@
-<div *ngIf="image$ | async" style="position: relative; overflow-x: hidden; overflow-y: auto;">
+<!-- <span *ngIf="point">{{point.x}}, {{point.y}}</span>
+<span *ngIf="!(selectedAreaIndex | isNan)">{{areas[selectedAreaIndex].x}}, {{areas[selectedAreaIndex].y}}</span> -->
+<div *ngIf="image$ | async" style="position: relative; overflow-x: hidden; overflow-y: auto; box-sizing: border-box;" style.maxHeight="{{originalSize !== undefined ? originalSize.height+5 : 0}}px">
     <img [src]="image$ | async">
     <svg #canvas attr.width="{{(originalSize !== undefined ? originalSize.width : 0)}}"
-        attr.height="{{(originalSize !== undefined ? originalSize.height : 0)}}" class="canvas-box">
+        attr.height="{{(originalSize !== undefined ? originalSize.height : 0)}}" class="canvas-box" cdkDropList>
         <defs>
             <pattern id="invalid" patternUnits="userSpaceOnUse" width="20" height="80" patternTransform="scale(1) rotate(45)">
                 <rect x="0" y="0" width="100%" height="100%" fill="rgba(0, 0, 0, 0.15)"></rect>
@@ -30,6 +32,28 @@
                 <path d='M-5 40H5M-5 0H5m30 0h10M35 40h10M15 20h10' stroke-linecap='square' stroke-width='7.5' stroke="rgba(255, 0, 0, 0.7)" fill='none'/>
             </pattern>
         </defs>
+        <!-- clones of the element that is being dragged -->
+        <ng-container *ngIf="!(draggedAreaIndex | isNan) && point">
+            <ng-container [ngSwitch]="point.type">
+                <circle *ngSwitchCase="'circle'" [attr.r]="(areas[draggedAreaIndex] | castShape).r" [attr.cx]="point.x" [attr.cy]="point.y" 
+                    attr.fill="{{this.formArray!.controls[draggedAreaIndex].valid ? '#4db6ac' : this.formArray!.controls[draggedAreaIndex].pending ?
+                    'url(#pending-selected)' : 'url(#invalid-selected)'}}" opacity=".5" 
+                    attr.stroke="{{!this.formArray!.controls[draggedAreaIndex].valid ? 'red' : '#00857c'}}" stroke-width="4"
+                    class="cdk-drag-dragging"
+                />
+                <rect *ngSwitchCase="'rectangle'"
+                    attr.x="{{(point | castShape).w-(point | castShape).x < 0 ? (point | castShape).w : (point | castShape).x}}"
+                    attr.y="{{(point | castShape).h-(point | castShape).y < 0 ? (point | castShape).h : (point | castShape).y}}"
+                    attr.width="{{(point | castShape).w-(point | castShape).x < 0 ? (point | castShape).x-(point | castShape).w : (point | castShape).w-(point | castShape).x}}"
+                    attr.height="{{(point | castShape).h - (point | castShape).y < 0 ? (point | castShape).y - (point | castShape).h : (point | castShape).h - (point | castShape).y}}"
+                    attr.fill="{{this.formArray!.controls[draggedAreaIndex].valid ? '#4db6ac' : this.formArray!.controls[draggedAreaIndex].pending ?
+                    'url(#pending-selected)' : 'url(#invalid-selected)'}}" opacity=".5"
+                    attr.stroke="{{!this.formArray!.controls[draggedAreaIndex].valid ? 'red' : '#00857c'}}" stroke-width="4"
+                    class="cdk-drag-dragging"
+                />
+            </ng-container>
+        </ng-container>
+        <!-- the elements drawn on the canvas -->
         <ng-container *ngFor="let area of areas; let i = index">
             <ng-container [ngSwitch]="area.type">
                 <circle *ngSwitchCase="'circle'"
@@ -39,8 +63,11 @@
                     attr.fill="{{this.formArray!.controls[i].valid ? '#4db6ac' : this.formArray!.controls[i].pending ?
                     'url(#pending'+ (selectedAreaIndex === i ? '-selected' : '') +')' :
                     'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
-                    opacity="0.5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
-                    (click)="selectArea(i)" />
+                    opacity=".5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
+                    (click)="clickArea$.next(i)" [class.draggable]="selectedAreaIndex === i"
+                    cdkDrag
+                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragMoved)="dragMove$.next($event)" (cdkDragEnded)="dragEnd$.next($event)" 
+                    />
                 <rect *ngSwitchCase="'rectangle'"
                     attr.x="{{(area | castShape).w-(area | castShape).x < 0 ? (area | castShape).w : (area | castShape).x}}"
                     attr.y="{{(area | castShape).h-(area | castShape).y < 0 ? (area | castShape).h : (area | castShape).y}}"
@@ -49,17 +76,21 @@
                     attr.fill="{{this.formArray!.controls[i].valid ? '#4db6ac' : this.formArray!.controls[i].pending ?
                         'url(#pending'+ (selectedAreaIndex === i ? '-selected' : '') +')' :
                         'url(#invalid' + (selectedAreaIndex === i ? '-selected' : '') +')'}}"
-                    opacity="0.5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
-                    (click)="selectArea(i)" />
+                    opacity=".5" attr.stroke="{{selectedAreaIndex === i && !this.formArray!.controls[i].valid ? 'red' : '#00857c'}}" attr.stroke-width="{{selectedAreaIndex === i ? 4 : 0}}"
+                    (click)="clickArea$.next(i)" [class.draggable]="selectedAreaIndex === i"
+                    cdkDrag
+                    (cdkDragStarted)="dragStart$.next(i)" (cdkDragMoved)="dragMove$.next($event)" (cdkDragEnded)="dragEnd$.next($event)" />
             </ng-container>
         </ng-container>
-        <ng-container *ngIf="selectedUndoArea">
+        <!-- The undo area of the selected element (it disappears when the element is being dragged)-->
+        <ng-container *ngIf="selectedUndoArea && (draggedAreaIndex | isNan) && !this.formArray!.controls[selectedAreaIndex].hasError('invalidRange')">
             <ng-container [ngSwitch]="selectedUndoArea.type">
                 <circle *ngSwitchCase="'circle'"
                     attr.cx="{{selectedUndoArea.x}}"
                     attr.cy="{{selectedUndoArea.y}}"
                     attr.r="{{(selectedUndoArea | castShape).r}}"
-                    fill="#4db6ac"
+                    attr.fill="{{this.formArray!.controls[selectedAreaIndex].valid ? '#4db6ac' : this.formArray!.controls[selectedAreaIndex].pending ?
+                        'url(#pending-selected)' : 'url(#invalid-selected)'}}"
                     opacity="0.3" stroke="#00857c" attr.stroke-width="{{(selectedAreaIndex | isNan) ? 0 : 1}}"
                     mask="url(#myMask)"
                     />
@@ -68,7 +99,8 @@
                     attr.y="{{(selectedUndoArea | castShape).h-(selectedUndoArea | castShape).y < 0 ? (selectedUndoArea | castShape).h : (selectedUndoArea | castShape).y}}"
                     attr.width="{{(selectedUndoArea | castShape).w-(selectedUndoArea | castShape).x < 0 ? (selectedUndoArea | castShape).x-(selectedUndoArea | castShape).w : (selectedUndoArea | castShape).w-(selectedUndoArea | castShape).x}}"
                     attr.height="{{(selectedUndoArea | castShape).h - (selectedUndoArea | castShape).y < 0 ? (selectedUndoArea | castShape).y - (selectedUndoArea | castShape).h : (selectedUndoArea | castShape).h - (selectedUndoArea | castShape).y}}"
-                    fill="#4db6ac"
+                    attr.fill="{{this.formArray!.controls[selectedAreaIndex].valid ? '#4db6ac' : this.formArray!.controls[selectedAreaIndex].pending ?
+                        'url(#pending-selected)' : 'url(#invalid-selected)'}}"
                     opacity="0.3" stroke="#00857c" attr.stroke-width="{{(selectedAreaIndex | isNan) ? 0 : 1}}"
                     />
             </ng-container>

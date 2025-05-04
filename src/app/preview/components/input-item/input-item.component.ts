@@ -1,9 +1,9 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, ControlContainer, ControlValueAccessor, FormArray, FormControl, FormGroup, UntypedFormArray, ValidationErrors } from '@angular/forms';
-import { IItem, INestedItem, IViewport } from '@preview/interfaces/files';
+import { AbstractControl, ControlContainer, FormArray, FormControl, FormGroup, ValidationErrors } from '@angular/forms';
+import { IItem, INestedItem } from '@preview/interfaces/files';
 import { IArea } from '@preview/interfaces/shapes';
 import { FileService } from '@preview/services/file.service';
-import { debounceTime, map, of, startWith, take, withLatestFrom } from 'rxjs';
+import { Subject, debounceTime, defer, filter, iif, map, merge, take, takeUntil, tap, withLatestFrom } from 'rxjs';
 
 @Component({
   selector: 'input-item',
@@ -15,8 +15,8 @@ export class InputItemComponent implements OnInit, OnDestroy {
 
   form: FormGroup = new FormGroup({
     gesture: new FormControl(),
-    from: new FormControl(),
-    to: new FormControl(),
+    from: new FormControl<number>(NaN),
+    to: new FormControl<number>(NaN),
     direction: new FormControl(),
     allowUndo: new FormControl(true)
   })
@@ -42,6 +42,8 @@ export class InputItemComponent implements OnInit, OnDestroy {
       { label: 'Pinch out', value: 'pinch-out' },
     ]}
   ]
+
+  private _destroy$: Subject<void> = new Subject<void>()
   
   constructor(private _parent: ControlContainer, private _fileService: FileService) { }
 
@@ -50,19 +52,42 @@ export class InputItemComponent implements OnInit, OnDestroy {
       throw new Error(`Cannot initialize input-item component because @Input area is undefined`)
     }else{
       (this._parent.control as FormArray).push(this.form) //add form to parent, which is an array of input-item
+      this.form.controls['from'].disable()  //disable it because it is automatically filled by direction
       this.form.addAsyncValidators(this._asyncFormValidator)
-      this._fileService.viewportChanged$.pipe(  //observe changes on viewport size...
-        debounceTime(200)
+      merge(
+        this._fileService.viewportChanged$,
+        this._fileService.interactiveAreaDragged$.pipe(
+          filter(area => area.area === this.area),
+        )
+      ).pipe(  //observe changes on viewport size...
+        debounceTime(200),
+        takeUntil(this._destroy$)
       ).subscribe(() => this.form.updateValueAndValidity()) //...and update the validity of the form
     }
   }
 
   ngOnDestroy(): void {
-    
+    //send the destroy signal to all the observers
+    this._destroy$.next()
+    this._destroy$.complete()
   }
 
   private _asyncFormValidator = (control: AbstractControl) => {
     return control.valueChanges.pipe(
+      tap((values) => { //before validation...
+        values.from = this.form.controls['from'].value  //add the from field to the values to be validated, because, being from disabled, its value is not included in values
+        let direction = values.direction
+        if(direction !== null && direction !== undefined){  //if direction has changed, update the value of from so that it displays the index of the tile where the area is
+          let from = this.form.controls['from'] as FormControl
+          if(direction.value === 'row'){
+             //the event is not emitted because it would trigger the validation again. OnlySelf is to prevent the parent group from being told that from changed. If onlySelf were false,
+             //the validation would stop
+            from.setValue(this.area?.pos.c, { emitEvent: false, onlySelf: true })
+          }else if(direction.value === 'col'){
+            from.setValue(this.area?.pos.r, { emitEvent: false, onlySelf: true })
+          }
+        }
+      }),
       withLatestFrom(this._fileService.viewportChanged$),
       debounceTime(100),
       take(1),
@@ -70,7 +95,7 @@ export class InputItemComponent implements OnInit, OnDestroy {
         let result: ValidationErrors|null = null
         console.log(`validating form`)
         if(Object.keys(values).every(k => values[k] === null || values[k] === undefined)){
-          result = { required: true }
+          result = { required: 'area' }
         }else{
           if(!values.gesture){
             result = { required: ['gesture'] }
@@ -78,22 +103,27 @@ export class InputItemComponent implements OnInit, OnDestroy {
 
           if(+values.from < 0){
             result = Object.assign(result === null ? {} : result, { invalidStart: 'negativeFrame' })
-          }else if(values.from === null || values.from === undefined){
-            if(result !== null && result['required'] && result['required'].length > 0){
+          }else if(values.from === null || values.from === undefined || isNaN(values.from)){
+            /*if(result !== null && result['required'] && result['required'].length > 0){
               result['required'].push('from')
             }else{
               result = Object.assign(result === null ? {} : result, { required: ['from'] })
-            }
+            }*/
           }
 
           if(+values.to < 0){
             result = Object.assign(result === null ? {} : result, { invalidEnd: 'negativeFrame' })
-          }else if(values.to === null || values.to === undefined){
+          }else if(values.to === null || values.to === undefined || isNaN(values.to)){
             if(result !== null && result['required'] && result['required'].length > 0){
               result['required'].push('to')
             }else{
               result = Object.assign(result === null ? {} : result, { required: ['to'] })
             }
+          }
+
+          //the two frames are the same, so the animation would be a single frame, thus invalid
+          if(!isNaN(values.from) && !isNaN(values.to) &&  +values.from === +values.to){
+            result = Object.assign(result === null ? {} : result, { invalidRange: 'sameFrame' })
           }
           
           if(values.direction){
@@ -125,9 +155,17 @@ export class InputItemComponent implements OnInit, OnDestroy {
               result = Object.assign(result === null ? {} : result, { required: ['direction'] })
             }
           }
+
+          //check whether the area is on the start tile
+          if(result === null && values.direction !== null &&
+            ((values.direction.label === 'Row' && +values.from !== this.area?.pos.c) ||
+            (values.direction.label === 'Column' && +values.from !== this.area?.pos.r))
+          ){
+            result = { invalidStart: 'areaNotOnStartTile' }
+          }
         }
 
-        console.log(result)
+        //console.log(result)
         return result
       })
     )

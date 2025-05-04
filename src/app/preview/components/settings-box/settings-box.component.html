@@ -9,17 +9,18 @@
         <input hidden (change)="selectFile$.next()" #fileInput type="file" id="file" accept="image/*">
 
         <div flex gap="16" style="padding-top: 16px;" formGroupName="viewport">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" [class.mat-form-field-invalid]="viewportForm.statusChanges | async | errorDetector: viewportForm : 'cols'">
                 <mat-label>Columns</mat-label>
-                <input matInput formControlName="cols" placeholder="" type="number" min="0" max="10000">
+                <input matInput formControlName="cols" placeholder="" type="number">
                 <mat-hint *ngIf="currentFile && settings.get('viewport.cols')">Column width: {{(currentFile.width/(settings.get('viewport.cols')!.value ? +settings.get('viewport.cols')!.value : 1)) | number: '1.0-1'}}px</mat-hint>
             </mat-form-field>
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" [class.mat-form-field-invalid]="viewportForm.statusChanges | async | errorDetector: viewportForm : 'rows'">
                 <mat-label>Rows</mat-label>
-                <input matInput formControlName="rows" placeholder="Placeholder" type="number" min="0" max="10000">
+                <input matInput formControlName="rows" placeholder="Placeholder" type="number">
                 <mat-hint *ngIf="currentFile && settings.get('viewport.rows')">Row height: {{(currentFile.height/(settings.get('viewport.rows')!.value ? +settings.get('viewport.rows')!.value : 1)) | number: '1.0-1'}}px</mat-hint>
             </mat-form-field>
         </div>
+        <mat-error *ngIf="viewportForm.errors !== null" style="font-size: 12px;">{{viewportForm.errors | errorText}}</mat-error>
         <mat-toolbar style="background: rgba(0,0,0,0); border-top: 1px solid #ddd;">
             <span>Interactive areas</span>
             <span style="flex: 1 1 auto;"></span>
@@ -31,7 +32,7 @@
             </button>
             <button mat-mini-fab color="primary" aria-label="Generate code"
                 (click)="toggleDrawer$.next()"
-                [matTooltip]="(areas.length === 0 || settings.invalid || settings.pending) ? 'Add a sprite sheet and some interactive areas before generating code': 'Show code'" [disabled]="areas.length === 0 || settings.invalid || settings.pending">
+                [matTooltip]="(areas.length === 0 || settings.invalid || settings.pending) ? 'Add a sprite-sheet and some interactive areas before generating code': 'Show code'" [disabled]="areas.length === 0 || settings.invalid || settings.pending">
                 <mat-icon>data_object</mat-icon>
             </button>
         </mat-toolbar>
@@ -40,12 +41,12 @@
                 <mat-list-option *ngFor="let area of areas; let i = index" [selected]="!showShapes && i === selectedAreaIndex" (click)="selectArea(i)">
                     <input-item flex="column" [area]="area"></input-item>
                 </mat-list-option>
-                <mat-list-option #newInteractiveArea class="mat-list-option mat-list-item item-button"
+                <mat-list-option #newInteractiveArea class="mat-list-option mat-list-item item-button" [disabled]="(viewportForm.pending || viewportForm.invalid) && !drawing && !showShapes"
                       [disableRipple]="newInteractiveArea.selected" (click)="addInteractiveArea$.next()" [selected]="showShapes">
                     <ng-container *ngIf="!drawing">
                         <ng-container *ngIf="!showShapes">
                             <mat-icon>add</mat-icon>
-                            Add interactive area
+                            <span>Add interactive area</span>
                         </ng-container>
                         <div *ngIf="showShapes">
                             <span>Select the shape for the interactive area</span>

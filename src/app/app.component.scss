@@ -1,8 +1,13 @@
 .content {
     display: flex;
       
-    & > * {
-        flex-basis: 50%;
+    & > *:not(preview-box) {
+        flex-basis: 40%;
+        box-sizing: border-box;
+    }
+
+    & > preview-box {
+        max-width: 20%;
         box-sizing: border-box;
     }
 }
