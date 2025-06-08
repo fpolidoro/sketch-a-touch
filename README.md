@@ -1,4 +1,4 @@
-# Sketch-A-Touch Supplemental Material
+# Sketch-A-Touch
 Sketch-A-Touch is an Angular application for generating interacted, animated mixed-fidelity prototypes from paper sketches.
 
 ## How to run Sketch-A-Touch
