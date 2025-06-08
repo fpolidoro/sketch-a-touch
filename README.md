@@ -1,24 +1,19 @@
-## Background
-Interaction with information visualisations on mobile devices is currently limited to popular touch gestures such as tap and swipe, and this limits the tasks we can carry out on the displayed data on the one hand, and the popularity of information visualisation among non-expert users. If we could connect a wider number of actions to gestures other than tap and swipe, it would be possible to carry out a wider number of infovis tasks directly on our mobile device, whenever we need it and regardless of where we are. This would in turn contribute to increase the popularity of infovis among users.
+# Sketch-A-Touch Supplemental Material
+Sketch-A-Touch is an Angular application for generating interacted, animated mixed-fidelity prototypes from paper sketches.
 
-To achieve this goal however there are a number of challenges to be addressed.
+## How to run Sketch-A-Touch
 
-- The number of standard gestures is very low and, at the same time, it is not advisable to create brand new gestures because it would be too a big burden for the user (especially the casual user) to learn and remember.
-- The tasks one can perform on an information visualisation are potentially many. Yet different users might have different needs and goals, therefore the priority rank of tasks might differ from person to person.
-- To maintain a high ease of use and to increase the attractiveness of infovis for non-expert people, the mappings between gestures and actions should be consistent across different types of information visualisations.
+This applications necessitates a web server to run properly. The most straightforward way to run it is by using a Visual Studio Code extension called Live Server by Ritwick Dey.
 
-To cope with the above challenges, infovis designers must find out which tasks to prioritise and map them to standard gestures while making sure these mappings are and stay consistent with those of other visualisations.
+To run Sketch-A-Touch with VSCode:
+- Launch VSCode and open the folder named sketch-a-touch provided with the supplemental material
+- Switch to the VSCode Extensions tab, search Live Server and click install
+- Once the installation has completed, a new button labelled "Go Live" will appear in the toolbar on the bottom-right of VSCode window
+- Click Go Live to start the server, then open a browser and navigate to the following URL `localhost:5500` to access Sketch-A-Touch
 
-# sketch-a-touch
-sketch-a-touch is a proof of concept that aims at helping designers to quickly set up interactive surveys to test the usability of gesture-task associations directly on mobile devices.
+### Notes
+While this app theoretically does not necessitate an internet connection to run, its layout leverages Google APIs to retrieve the fonts and the icons. As such, to avoid layout artifacts due to missing icons, we recommend to ensure Google is accessible before running Sketch-A-Touch.
 
-To allow fast prototyping and fast evaluation with potential users, sketch-a-touch extends the paper screen idea proposed by [] and proposes a paper prototype that reacts to the user input by swapping the paper views without the need for a human Wizard of Oz.
+Being a proof-of-concept, we did not perform an in-depth testing of the interface widgets. Despite we tried to fix as many bugs and glitches as possible, this version of Sketch-A-Touch still has few bugs that might affect the correct display of sprite-sheet images and the animation previewer (when more than one interactive area is present).
 
-This is done by leveraging texture atlases (a.k.a. spritesheets) a popular technique employed by 2D video games to animate the characters upon user input. A spritesheet is a large image made of multiple smaller images sharing the same size, which are swapped sequentially to create the animation.
-
-In our case, the spritesheet contains multiple views of the information visualisation and it can be connected to one or more user inputs, i.e. touch gestures, so that the user can observe how the infovis changes when they perform a specific gesture on the screen.
- 
-## How it works
-After uploading the spritesheet containing the various views of the information visualisation, the user specifies the number or rows and columns contained by the spritesheet, so to resize the viewport to show only one image at a time.
-
-The user can then add the interaction by drawing a circular or a rectangular interactive area on the viewport and, by selecting the gesture the area should react to, the start and end images of the animation as well as the direction in which the spritesheet should move.
+As stated in the paper, the automatic code generation for the gestures is not fully implemented. Tap is the only gesture currently supported (although not tested extensively). To deploy the prototypes featuring the tap gesture, it is necessary to manually change the file name associated to the `background-image` property within the `#anim` block of the generated CSS file with the file name (or location) of the actual image file.
